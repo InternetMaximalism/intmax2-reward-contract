@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
+import {IMinter} from "./IMinter.sol";
 import {IINTMAXToken} from "../token/IINTMAXToken.sol";
 import {IL1GatewayRouter} from "@scroll-tech/contracts/L1/gateways/IL1GatewayRouter.sol";
+
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract Minter is OwnableUpgradeable, UUPSUpgradeable {
+contract Minter is IMinter, OwnableUpgradeable, UUPSUpgradeable {
     IINTMAXToken private intmaxToken;
 
     address private liquidity;
