@@ -10,4 +10,12 @@ interface IBlockBuilderReward {
 
     /// @notice Error thrown when the xDomainMessageSender in ScrollMessenger is not the Minter contract
     error OnlyMinter();
+
+    event ITXDeposited(uint256 indexed periodNumber, uint256 amount);
+
+    event ITXClaimed(
+        uint256 indexed periodNumber,
+        address indexed user,
+        uint256 amount
+    );
 }
