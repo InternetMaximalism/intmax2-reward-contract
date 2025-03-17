@@ -17,7 +17,7 @@ contract BlockBuilderReward is
 {
     IContribution private contribution;
     IL2ScrollMessenger private l2ScrollMessenger;
-    IERC20 private ITXTokenAddress;
+    IERC20 private intmaxToken;
     address private minter;
 
     mapping(uint256 => uint256) public periodToTotalReward;
@@ -53,7 +53,7 @@ contract BlockBuilderReward is
         );
         uint256 reward = (convert(periodToTotalReward[periodNumber]) *
             contributionRate).unwrap();
-        ITXTokenAddress.transfer(_msgSender(), reward);
+        intmaxToken.transfer(_msgSender(), reward);
         emit ITXClaimed(periodNumber, _msgSender(), reward);
     }
 
