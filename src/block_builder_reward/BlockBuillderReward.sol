@@ -20,7 +20,8 @@ contract BlockBuilderReward is
     IERC20 private intmaxToken;
     address private minter;
 
-    mapping(uint256 => uint256) public periodToTotalReward;
+    mapping(uint256 => uint256) private periodToTotalReward;
+    mapping(uint256 => mapping(address => bool)) public claimed;
 
     modifier onlyMinterContract() {
         IL2ScrollMessenger l2ScrollMessengerCached = l2ScrollMessenger;
@@ -43,10 +44,18 @@ contract BlockBuilderReward is
         uint256 amount
     ) external onlyMinterContract {
         periodToTotalReward[periodNumber] += amount;
-        emit ITXDeposited(periodNumber, amount);
+        emit Deposited(periodNumber, amount);
     }
 
     function claimReward(uint256 periodNumber) external {
+        if (contribution.currentPeriod() <= periodNumber) {
+            revert PeriodNotEnded();
+        }
+        if (claimed[periodNumber][_msgSender()]) {
+            revert AlreadyClaimed();
+        } else {
+            claimed[periodNumber][_msgSender()] = true;
+        }
         UD60x18 contributionRate = contribution.getContributionRate(
             periodNumber,
             _msgSender()
@@ -54,7 +63,7 @@ contract BlockBuilderReward is
         uint256 reward = (convert(periodToTotalReward[periodNumber]) *
             contributionRate).unwrap();
         intmaxToken.transfer(_msgSender(), reward);
-        emit ITXClaimed(periodNumber, _msgSender(), reward);
+        emit Claimed(periodNumber, _msgSender(), reward);
     }
 
     function _authorizeUpgrade(address) internal override onlyOwner {}

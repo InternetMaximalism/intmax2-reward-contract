@@ -34,6 +34,9 @@ interface IContribution {
     /// @dev This error is raised to ensure data integrity when registering weights for tags
     error InvalidInputLength();
 
+    /// @notice Get the current period number.
+    function currentPeriod() external view returns (uint256);
+
     /// @notice Get the list of tags registered for a specific period.
     /// @param periodNumber The number of the period to query.
     /// @return An array of bytes32 representing the tags.

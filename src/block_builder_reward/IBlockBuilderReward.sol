@@ -11,9 +11,15 @@ interface IBlockBuilderReward {
     /// @notice Error thrown when the xDomainMessageSender in ScrollMessenger is not the Minter contract
     error OnlyMinter();
 
-    event ITXDeposited(uint256 indexed periodNumber, uint256 amount);
+    /// @notice Error thrown when a user tries to claim a reward that has already been claimed
+    error AlreadyClaimed();
 
-    event ITXClaimed(
+    /// @notice Error thrown when a user tries to claim a reward for a period that has not ended
+    error PeriodNotEnded();
+
+    event Deposited(uint256 indexed periodNumber, uint256 amount);
+
+    event Claimed(
         uint256 indexed periodNumber,
         address indexed user,
         uint256 amount
