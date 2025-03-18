@@ -39,6 +39,35 @@ contract BlockBuilderReward is
         _disableInitializers();
     }
 
+    /**
+     * @notice Initializes the contract with required dependencies
+     * @param _contribution Address of the Contribution contract
+     * @param _l2ScrollMessenger Address of the L2ScrollMessenger contract
+     * @param _intmaxToken Address of the INTMAX token
+     * @param _minter Address of the Minter contract
+     */
+    function initialize(
+        address _contribution,
+        address _l2ScrollMessenger,
+        address _intmaxToken,
+        address _minter
+    ) external initializer {
+        if (_contribution == address(0) || 
+            _l2ScrollMessenger == address(0) || 
+            _intmaxToken == address(0) || 
+            _minter == address(0)) {
+            revert AddressZero();
+        }
+        
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
+        
+        contribution = IContribution(_contribution);
+        l2ScrollMessenger = IL2ScrollMessenger(_l2ScrollMessenger);
+        intmaxToken = IERC20(_intmaxToken);
+        minter = _minter;
+    }
+
     function deposit(
         uint256 periodNumber,
         uint256 amount

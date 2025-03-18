@@ -15,11 +15,47 @@ contract Minter is IMinter, OwnableUpgradeable, UUPSUpgradeable {
     address private blockBuilderReward;
     IL1GatewayRouter private l1GatewayRouter;
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    /**
+     * @notice Initializes the contract with required dependencies
+     * @param _intmaxToken Address of the INTMAX token
+     * @param _liquidity Address for liquidity distribution
+     * @param _blockBuilderReward Address of the BlockBuilderReward contract
+     * @param _l1GatewayRouter Address of the L1GatewayRouter contract
+     */
+    function initialize(
+        address _intmaxToken,
+        address _liquidity,
+        address _blockBuilderReward,
+        address _l1GatewayRouter
+    ) external initializer {
+        if (
+            _intmaxToken == address(0) ||
+            _liquidity == address(0) ||
+            _blockBuilderReward == address(0) ||
+            _l1GatewayRouter == address(0)
+        ) {
+            revert AddressZero();
+        }
+
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
+
+        intmaxToken = IINTMAXToken(_intmaxToken);
+        liquidity = _liquidity;
+        blockBuilderReward = _blockBuilderReward;
+        l1GatewayRouter = IL1GatewayRouter(_l1GatewayRouter);
+    }
+
     function mintAndDistribute(
         uint256 amountToLiquidity,
         uint256 amountToBlockBuilderReward,
         uint256 rewardPeriod
-    ) external {
+    ) external onlyOwner {
         intmaxToken.mint(address(this));
 
         intmaxToken.transfer(liquidity, amountToLiquidity);
