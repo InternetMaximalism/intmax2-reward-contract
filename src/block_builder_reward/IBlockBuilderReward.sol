@@ -17,8 +17,10 @@ interface IBlockBuilderReward {
     /// @notice Error thrown when a user tries to claim a reward for a period that has not ended
     error PeriodNotEnded();
 
+    /// @notice Emitted when a deposit is made to the contract.
     event Deposited(uint256 indexed periodNumber, uint256 amount);
 
+    /// @notice Emitted when a reward is claimed.
     event Claimed(
         uint256 indexed periodNumber,
         address indexed user,
