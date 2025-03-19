@@ -14,11 +14,16 @@ interface IBlockBuilderReward {
     /// @notice Error thrown when a user tries to claim a reward that has already been claimed
     error AlreadyClaimed();
 
+    /// @notice Error thrown when a user tries to claim a reward that is not allowed
+    error ClaimNotAllowed();
+
+    error ClaimAllowed();
+
     /// @notice Error thrown when a user tries to claim a reward for a period that has not ended
     error PeriodNotEnded();
 
-    /// @notice Emitted when a deposit is made to the contract.
-    event Deposited(uint256 indexed periodNumber, uint256 amount);
+    /// @notice Emitted when a reward is set.
+    event SetReward(uint256 indexed periodNumber, uint256 amount);
 
     /// @notice Emitted when a reward is claimed.
     event Claimed(
@@ -26,4 +31,10 @@ interface IBlockBuilderReward {
         address indexed user,
         uint256 amount
     );
+
+    function setReward(uint256 periodNumber, uint256 amount) external;
+
+    function allowClaim(uint256 periodNumber) external;
+
+    function claimReward(uint256 periodNumber) external;
 }

@@ -5,9 +5,7 @@ interface IMinter {
     /// @notice address is zero address
     error AddressZero();
 
-    function mintAndDistribute(
-        uint256 amountToLiquidity,
-        uint256 amountToBlockBuilderReward,
-        uint256 rewardPeriod
-    ) external;
+    function mint() external;
+
+    function transferToLiquidity(uint256 amount) external;
 }
