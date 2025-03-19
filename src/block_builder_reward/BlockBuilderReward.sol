@@ -66,13 +66,13 @@ contract BlockBuilderReward is
     }
 
     function allowClaim(uint256 periodNumber) external onlyOwner {
-        if (contribution.getCurrentPeriod() <= periodNumber) {
-            revert PeriodNotEnded();
-        }
         claimAllowed[periodNumber] = true;
     }
 
     function claimReward(uint256 periodNumber) external {
+        if (contribution.getCurrentPeriod() <= periodNumber) {
+            revert PeriodNotEnded();
+        }
         if (!claimAllowed[periodNumber]) {
             revert ClaimNotAllowed();
         }
