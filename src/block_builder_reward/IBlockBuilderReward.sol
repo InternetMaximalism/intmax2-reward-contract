@@ -5,18 +5,13 @@ interface IBlockBuilderReward {
     /// @notice address is zero address
     error AddressZero();
 
-    /// @notice Error thrown when a non-ScrollMessenger calls a function restricted to ScrollMessenger
-    error OnlyScrollMessenger();
-
-    /// @notice Error thrown when the xDomainMessageSender in ScrollMessenger is not the Minter contract
-    error OnlyMinter();
-
     /// @notice Error thrown when a user tries to claim a reward that has already been claimed
     error AlreadyClaimed();
 
     /// @notice Error thrown when a user tries to claim a reward that is not allowed
     error ClaimNotAllowed();
 
+    /// @notice Error thrown when owner tries to set a reward for a period that has already allowed claim
     error ClaimAllowed();
 
     /// @notice Error thrown when a user tries to claim a reward for a period that has not ended

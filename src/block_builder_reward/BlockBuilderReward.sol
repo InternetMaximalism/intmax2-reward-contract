@@ -54,7 +54,10 @@ contract BlockBuilderReward is
         minter = _minter;
     }
 
-    function setReward(uint256 periodNumber, uint256 amount) external {
+    function setReward(
+        uint256 periodNumber,
+        uint256 amount
+    ) external onlyOwner {
         if (claimAllowed[periodNumber]) {
             revert ClaimAllowed();
         }
@@ -62,12 +65,9 @@ contract BlockBuilderReward is
         emit SetReward(periodNumber, amount);
     }
 
-    function allowClaim(uint256 periodNumber) external {
+    function allowClaim(uint256 periodNumber) external onlyOwner {
         if (contribution.getCurrentPeriod() <= periodNumber) {
             revert PeriodNotEnded();
-        }
-        if (claimAllowed[periodNumber]) {
-            revert ClaimAllowed();
         }
         claimAllowed[periodNumber] = true;
     }
