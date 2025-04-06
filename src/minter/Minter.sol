@@ -9,9 +9,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 
 contract Minter is IMinter, OwnableUpgradeable, UUPSUpgradeable {
     IINTMAXToken private intmaxToken;
-
     address private liquidity;
-    address private blockBuilderReward;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -22,27 +20,17 @@ contract Minter is IMinter, OwnableUpgradeable, UUPSUpgradeable {
      * @notice Initializes the contract with required dependencies
      * @param _intmaxToken Address of the INTMAX token
      * @param _liquidity Address for liquidity distribution
-     * @param _blockBuilderReward Address of the BlockBuilderReward contract
      */
-    function initialize(
-        address _intmaxToken,
-        address _liquidity,
-        address _blockBuilderReward
-    ) external initializer {
-        if (
-            _intmaxToken == address(0) ||
-            _liquidity == address(0) ||
-            _blockBuilderReward == address(0)
-        ) {
+    function initialize(address _intmaxToken, address _liquidity) external initializer {
+        if (_intmaxToken == address(0) || _liquidity == address(0)) {
             revert AddressZero();
         }
 
-        __Ownable_init(msg.sender);
+        __Ownable_init(_msgSender());
         __UUPSUpgradeable_init();
 
         intmaxToken = IINTMAXToken(_intmaxToken);
         liquidity = _liquidity;
-        blockBuilderReward = _blockBuilderReward;
     }
 
     function mint() external onlyOwner {

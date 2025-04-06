@@ -70,13 +70,9 @@ contract INTMAXToken is ERC20, AccessControl, IINTMAXToken {
         _grantRole(MINTER_ROLE, minter_);
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override returns (bool) {
-        return
-            interfaceId == type(IERC20).interfaceId ||
-            interfaceId == type(IINTMAXToken).interfaceId ||
-            super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IERC20).interfaceId || interfaceId == type(IINTMAXToken).interfaceId
+            || super.supportsInterface(interfaceId);
     }
 
     /**
@@ -143,11 +139,7 @@ contract INTMAXToken is ERC20, AccessControl, IINTMAXToken {
     /**
      * @dev Overrides the {ERC20-_update} function to allow transfers only when transfers are allowed.
      */
-    function _update(
-        address from,
-        address to,
-        uint256 value
-    ) internal virtual override {
+    function _update(address from, address to, uint256 value) internal virtual override {
         _requireTransferAllowed(from, to);
         super._update(from, to, value);
     }
