@@ -8,11 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract BlockBuilderReward is
-    IBlockBuilderReward,
-    OwnableUpgradeable,
-    UUPSUpgradeable
-{
+contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgradeable {
     /// @notice contribution tag for block post
     bytes32 constant BLOCK_POST_TAG = keccak256("POST_BLOCK");
 
@@ -35,16 +31,8 @@ contract BlockBuilderReward is
      * @param _intmaxToken Address of the INTMAX token
      * @param _minter Address of the Minter contract
      */
-    function initialize(
-        address _contribution,
-        address _intmaxToken,
-        address _minter
-    ) external initializer {
-        if (
-            _contribution == address(0) ||
-            _intmaxToken == address(0) ||
-            _minter == address(0)
-        ) {
+    function initialize(address _contribution, address _intmaxToken, address _minter) external initializer {
+        if (_contribution == address(0) || _intmaxToken == address(0) || _minter == address(0)) {
             revert AddressZero();
         }
         __Ownable_init(msg.sender);
@@ -54,10 +42,7 @@ contract BlockBuilderReward is
         minter = _minter;
     }
 
-    function setReward(
-        uint256 periodNumber,
-        uint256 amount
-    ) external onlyOwner {
+    function setReward(uint256 periodNumber, uint256 amount) external onlyOwner {
         if (claimAllowed[periodNumber]) {
             revert ClaimAllowed();
         }
@@ -81,12 +66,9 @@ contract BlockBuilderReward is
         } else {
             claimed[periodNumber][_msgSender()] = true;
         }
-        uint reward = (totalRewards[periodNumber] *
-            contribution.userContributions(
-                periodNumber,
-                BLOCK_POST_TAG,
-                _msgSender()
-            )) / contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
+        uint256 reward = (
+            totalRewards[periodNumber] * contribution.userContributions(periodNumber, BLOCK_POST_TAG, _msgSender())
+        ) / contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
         intmaxToken.transfer(_msgSender(), reward);
         emit Claimed(periodNumber, _msgSender(), reward);
     }
