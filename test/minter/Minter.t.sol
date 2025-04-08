@@ -10,9 +10,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract testIntMaxToken is ERC20 {
-    constructor() ERC20("TestIntMaxToken", "TIMT") {
-        //_mint(msg.sender, type(uint256).max);
-    }
+    constructor() ERC20("TestIntMaxToken", "TIMT") {}
 
     function mint(address to) external {
         _mint(to, 1000);

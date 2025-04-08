@@ -23,9 +23,25 @@ interface IBlockBuilderReward {
     /// @notice Emitted when a reward is claimed.
     event Claimed(uint256 indexed periodNumber, address indexed user, uint256 amount);
 
+    /**
+     * @notice Sets the reward for a given period
+     * @dev Only callable by the contract owner
+     * @param periodNumber The period number for which the reward is being set
+     * @param amount The amount of reward to be set for the given period
+     */
     function setReward(uint256 periodNumber, uint256 amount) external;
 
+    /**
+     * @notice Allows claiming of rewards for a given period
+     * @dev Only callable by the contract owner
+     * @param periodNumber The period number for which claiming is allowed
+     */
     function allowClaim(uint256 periodNumber) external;
 
+    /**
+     * @notice Claims the reward for a given period
+     * @dev Only callable by the user who is claiming the reward
+     * @param periodNumber The period number for which the reward is being claimed
+     */
     function claimReward(uint256 periodNumber) external;
 }
