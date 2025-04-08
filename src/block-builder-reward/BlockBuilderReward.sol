@@ -14,7 +14,6 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
 
     IContribution private contribution;
     IERC20 private intmaxToken;
-    address private minter;
 
     mapping(uint256 => uint256) public totalRewards;
     mapping(uint256 => bool) public claimAllowed;
@@ -29,17 +28,15 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
      * @notice Initializes the contract with required dependencies
      * @param _contribution Address of the Contribution contract
      * @param _intmaxToken Address of the INTMAX token
-     * @param _minter Address of the Minter contract
      */
-    function initialize(address _contribution, address _intmaxToken, address _minter) external initializer {
-        if (_contribution == address(0) || _intmaxToken == address(0) || _minter == address(0)) {
+    function initialize(address _contribution, address _intmaxToken) external initializer {
+        if (_contribution == address(0) || _intmaxToken == address(0)) {
             revert AddressZero();
         }
-        __Ownable_init(msg.sender);
+        __Ownable_init(_msgSender());
         __UUPSUpgradeable_init();
         contribution = IContribution(_contribution);
         intmaxToken = IERC20(_intmaxToken);
-        minter = _minter;
     }
 
     function setReward(uint256 periodNumber, uint256 amount) external onlyOwner {
