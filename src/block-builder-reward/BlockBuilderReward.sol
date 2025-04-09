@@ -17,6 +17,7 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
 
     mapping(uint256 => uint256) public totalRewards;
     mapping(uint256 => bool) public claimAllowed;
+    mapping(uint256 => bool) public alreadySetReward;
     mapping(uint256 => mapping(address => bool)) public claimed;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -44,10 +45,14 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
             revert ClaimAllowed();
         }
         totalRewards[periodNumber] = amount;
+        alreadySetReward[periodNumber] = true;
         emit SetReward(periodNumber, amount);
     }
 
     function allowClaim(uint256 periodNumber) external onlyOwner {
+        if (!alreadySetReward[periodNumber]) {
+            revert NotSetReward(periodNumber);
+        }
         claimAllowed[periodNumber] = true;
     }
 

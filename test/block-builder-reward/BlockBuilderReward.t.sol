@@ -95,8 +95,10 @@ contract BlockBuilderRewardTest is Test {
     }
 
     function test_setReward() public {
+        assertEq(builder.alreadySetReward(1), false);
         builder.setReward(1, 1000);
         assertEq(builder.totalRewards(1), 1000);
+        assertEq(builder.alreadySetReward(1), true);
     }
 
     function test_emitSetReward() public {
@@ -121,8 +123,15 @@ contract BlockBuilderRewardTest is Test {
     }
 
     function test_allowClaim() public {
+        builder.setReward(1, 1000);
         builder.allowClaim(1);
         assertTrue(builder.claimAllowed(1));
+    }
+
+    function test_allowClaimButNotSetReward() public {
+        bytes memory expectedRevert = abi.encodeWithSelector(IBlockBuilderReward.NotSetReward.selector, 1);
+        vm.expectRevert(expectedRevert);
+        builder.allowClaim(1);
     }
 
     function test_nonOwnerAllowClaim() public {
