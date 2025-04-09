@@ -14,3 +14,6 @@
 [submodule "lib/scroll-contracts"]
 	path = lib/scroll-contracts
 	url = https://github.com/scroll-tech/scroll-contracts
+[submodule "lib/intmax2-contract"]
+	path = lib/intmax2-contract
+	url = https://github.com/InternetMaximalism/intmax2-contract
