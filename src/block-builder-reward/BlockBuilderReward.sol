@@ -8,7 +8,11 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgradeable {
+contract BlockBuilderReward is
+    IBlockBuilderReward,
+    OwnableUpgradeable,
+    UUPSUpgradeable
+{
     /// @notice contribution tag for block post
     bytes32 constant BLOCK_POST_TAG = keccak256("POST_BLOCK");
 
@@ -30,7 +34,10 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
      * @param _contribution Address of the Contribution contract
      * @param _intmaxToken Address of the INTMAX token
      */
-    function initialize(address _contribution, address _intmaxToken) external initializer {
+    function initialize(
+        address _contribution,
+        address _intmaxToken
+    ) external initializer {
         if (_contribution == address(0) || _intmaxToken == address(0)) {
             revert AddressZero();
         }
@@ -40,7 +47,10 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
         intmaxToken = IERC20(_intmaxToken);
     }
 
-    function setReward(uint256 periodNumber, uint256 amount) external onlyOwner {
+    function setReward(
+        uint256 periodNumber,
+        uint256 amount
+    ) external onlyOwner {
         if (claimAllowed[periodNumber]) {
             revert ClaimAllowed();
         }
@@ -68,9 +78,12 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
         } else {
             claimed[periodNumber][_msgSender()] = true;
         }
-        uint256 reward = (
-            totalRewards[periodNumber] * contribution.userContributions(periodNumber, BLOCK_POST_TAG, _msgSender())
-        ) / contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
+        uint256 reward = (totalRewards[periodNumber] *
+            contribution.userContributions(
+                periodNumber,
+                BLOCK_POST_TAG,
+                _msgSender()
+            )) / contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
         intmaxToken.transfer(_msgSender(), reward);
         emit Claimed(periodNumber, _msgSender(), reward);
     }
