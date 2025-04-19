@@ -31,10 +31,7 @@ contract Minter is IMinter, OwnableUpgradeable, UUPSUpgradeable {
      * @param _liquidity Address for liquidity distribution
      * @custom:oz-upgrades-init-compat initializer
      */
-    function initialize(
-        address _intmaxToken,
-        address _liquidity
-    ) external initializer {
+    function initialize(address _intmaxToken, address _liquidity) external initializer {
         if (_intmaxToken == address(0) || _liquidity == address(0)) {
             revert AddressZero();
         }
@@ -67,7 +64,5 @@ contract Minter is IMinter, OwnableUpgradeable, UUPSUpgradeable {
      * @dev Function that authorizes an upgrade to a new implementation
      * @param newImplementation Address of the new implementation
      */
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

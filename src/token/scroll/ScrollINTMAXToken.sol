@@ -36,11 +36,7 @@ contract ScrollINTMAXToken is ERC20, AccessControl {
      * @param rewardContract Address that will be granted the DISTRIBUTOR role
      * @param mintAmount Initial amount of tokens to mint to the admin
      */
-    constructor(
-        address admin_,
-        address rewardContract,
-        uint256 mintAmount
-    ) ERC20("ScrollINTMAX", "sITX") {
+    constructor(address admin_, address rewardContract, uint256 mintAmount) ERC20("ScrollINTMAX", "sITX") {
         transfersAllowed = false;
         _mint(admin_, mintAmount);
         _grantRole(DISTRIBUTOR, rewardContract);
@@ -53,12 +49,8 @@ contract ScrollINTMAXToken is ERC20, AccessControl {
      * @param interfaceId The interface identifier to check
      * @return bool True if the interface is supported
      */
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override returns (bool) {
-        return
-            interfaceId == type(IERC20).interfaceId ||
-            super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IERC20).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /**
@@ -85,11 +77,7 @@ contract ScrollINTMAXToken is ERC20, AccessControl {
      * @param to The address tokens are transferred to
      * @param value The amount of tokens to transfer
      */
-    function _update(
-        address from,
-        address to,
-        uint256 value
-    ) internal virtual override {
+    function _update(address from, address to, uint256 value) internal virtual override {
         _requireTransferAllowed(from, to);
         super._update(from, to, value);
     }

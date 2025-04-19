@@ -30,11 +30,7 @@ interface IBlockBuilderReward {
     event SetReward(uint256 indexed periodNumber, uint256 amount);
 
     /// @notice Emitted when a reward is claimed.
-    event Claimed(
-        uint256 indexed periodNumber,
-        address indexed user,
-        uint256 amount
-    );
+    event Claimed(uint256 indexed periodNumber, address indexed user, uint256 amount);
 
     /**
      * @notice Structure to store reward information for a specific period
