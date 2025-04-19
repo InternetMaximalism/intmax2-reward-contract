@@ -8,20 +8,36 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
+/**
+ * @title BlockBuilderReward
+ * @notice Contract for managing and distributing rewards to block builders
+ * @dev This contract calculates and distributes rewards based on users' contributions
+ * to block building as recorded in the Contribution contract. It implements the UUPS
+ * upgradeable pattern and is owned by a designated admin.
+ */
 contract BlockBuilderReward is
     IBlockBuilderReward,
     OwnableUpgradeable,
     UUPSUpgradeable
 {
-    /// @notice contribution tag for block post
+    /// @notice Contribution tag for identifying block posting activities
+    /// @dev Used to query contribution scores from the Contribution contract
     bytes32 constant BLOCK_POST_TAG = keccak256("POST_BLOCK");
 
+    /// @notice Reference to the Contribution contract for accessing contribution scores
     IContribution private contribution;
+    
+    /// @notice Reference to the INTMAX token contract for reward distribution
     IERC20 private intmaxToken;
 
+    /// @notice Mapping of period numbers to their total reward information
     mapping(uint256 => TotalReward) public totalRewards;
+    
+    /// @notice Mapping to track which users have claimed rewards for which periods
+    /// @dev First key is period number, second key is user address, value is whether claimed
     mapping(uint256 => mapping(address => bool)) public claimed;
 
+    /// @notice Constructor that disables initializers to prevent implementation contract initialization
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -29,8 +45,10 @@ contract BlockBuilderReward is
 
     /**
      * @notice Initializes the contract with required dependencies
-     * @param _contribution Address of the Contribution contract
-     * @param _intmaxToken Address of the INTMAX token
+     * @dev This function can only be called once due to the initializer modifier
+     * @param _contribution Address of the Contribution contract for accessing contribution scores
+     * @param _intmaxToken Address of the INTMAX token used for reward distribution
+     * @custom:throws AddressZero if either address parameter is the zero address
      */
     function initialize(
         address _contribution,
@@ -46,10 +64,12 @@ contract BlockBuilderReward is
     }
 
     /**
-     * @notice Sets the reward for a given period
+     * @notice Sets the total reward amount for a specific period
      * @dev Only callable by the contract owner
      * @param periodNumber The period number for which the reward is being set
-     * @param amount The amount of reward to be set for the given period
+     * @param amount The total amount of tokens to distribute as rewards for the given period
+     * @custom:throws RewardTooLarge if amount exceeds uint248 max value
+     * @custom:throws AlreadySetReward if reward for this period has already been set
      */
     function setReward(
         uint256 periodNumber,
@@ -71,9 +91,13 @@ contract BlockBuilderReward is
     }
 
     /**
-     * @notice Claims the reward for a given period
-     * @dev Only callable by the user who is claiming the reward
+     * @notice Claims the caller's share of rewards for a specific period
+     * @dev The reward amount is calculated based on the user's contribution relative to the total contributions
+     * for the specified period and tag. The formula is: (totalReward * userContribution) / totalContributions
      * @param periodNumber The period number for which the reward is being claimed
+     * @custom:throws PeriodNotEnded if the specified period has not yet ended
+     * @custom:throws NotSetReward if no reward has been set for the specified period
+     * @custom:throws AlreadyClaimed if the caller has already claimed their reward for this period
      */
     function claimReward(uint256 periodNumber) external {
         if (contribution.getCurrentPeriod() <= periodNumber) {
@@ -99,5 +123,10 @@ contract BlockBuilderReward is
         emit Claimed(periodNumber, _msgSender(), reward);
     }
 
-    function _authorizeUpgrade(address) internal override onlyOwner {}
+    /**
+     * @notice Authorizes an upgrade to a new implementation
+     * @dev Only the contract owner can authorize upgrades
+     * @param newImplementation Address of the new implementation contract
+     */
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
