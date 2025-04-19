@@ -2,7 +2,7 @@
 pragma solidity 0.8.27;
 
 import {IMinter} from "./IMinter.sol";
-import {IINTMAXToken} from "../token/IINTMAXToken.sol";
+import {IINTMAXToken} from "../token/mainnet/IINTMAXToken.sol";
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
