@@ -25,14 +25,14 @@ contract BlockBuilderReward is
     bytes32 constant BLOCK_POST_TAG = keccak256("POST_BLOCK");
 
     /// @notice Reference to the Contribution contract for accessing contribution scores
-    IContribution private contribution;
-    
+    IContribution public contribution;
+
     /// @notice Reference to the INTMAX token contract for reward distribution
-    IERC20 private intmaxToken;
+    IERC20 public intmaxToken;
 
     /// @notice Mapping of period numbers to their total reward information
     mapping(uint256 => TotalReward) public totalRewards;
-    
+
     /// @notice Mapping to track which users have claimed rewards for which periods
     /// @dev First key is period number, second key is user address, value is whether claimed
     mapping(uint256 => mapping(address => bool)) public claimed;
@@ -128,5 +128,7 @@ contract BlockBuilderReward is
      * @dev Only the contract owner can authorize upgrades
      * @param newImplementation Address of the new implementation contract
      */
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 }
