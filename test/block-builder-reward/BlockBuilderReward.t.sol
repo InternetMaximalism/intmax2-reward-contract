@@ -97,7 +97,8 @@ contract BlockBuilderRewardTest is Test {
     function test_setReward() public {
         assertEq(builder.alreadySetReward(1), false);
         builder.setReward(1, 1000);
-        assertEq(builder.totalRewards(1), 1000);
+        (/* bool isSet */, uint248 amount) = builder.totalRewards(1);
+        assertEq(amount, 1000);
         assertEq(builder.alreadySetReward(1), true);
     }
 

@@ -19,9 +19,7 @@ contract BlockBuilderReward is
     IContribution private contribution;
     IERC20 private intmaxToken;
 
-    mapping(uint256 => uint256) public totalRewards;
-    mapping(uint256 => bool) public claimAllowed;
-    mapping(uint256 => bool) public alreadySetReward;
+    mapping(uint256 => TotalReward) public totalRewards;
     mapping(uint256 => mapping(address => bool)) public claimed;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -47,38 +45,51 @@ contract BlockBuilderReward is
         intmaxToken = IERC20(_intmaxToken);
     }
 
+    /**
+     * @notice Sets the reward for a given period
+     * @dev Only callable by the contract owner
+     * @param periodNumber The period number for which the reward is being set
+     * @param amount The amount of reward to be set for the given period
+     */
     function setReward(
         uint256 periodNumber,
         uint256 amount
     ) external onlyOwner {
-        if (claimAllowed[periodNumber]) {
-            revert ClaimAllowed();
+        uint248 amount248 = uint248(amount);
+        if (amount != uint256(amount248)) {
+            revert RewardTooLarge();
         }
-        totalRewards[periodNumber] = amount;
-        alreadySetReward[periodNumber] = true;
+        TotalReward memory totalReward = totalRewards[periodNumber];
+        if (totalReward.isSet) {
+            revert AlreadySetReward();
+        }
+        totalRewards[periodNumber] = TotalReward({
+            isSet: true,
+            amount: amount248
+        });
         emit SetReward(periodNumber, amount);
     }
 
-    function allowClaim(uint256 periodNumber) external onlyOwner {
-        if (!alreadySetReward[periodNumber]) {
-            revert NotSetReward(periodNumber);
-        }
-        claimAllowed[periodNumber] = true;
-    }
-
+    /**
+     * @notice Claims the reward for a given period
+     * @dev Only callable by the user who is claiming the reward
+     * @param periodNumber The period number for which the reward is being claimed
+     */
     function claimReward(uint256 periodNumber) external {
         if (contribution.getCurrentPeriod() <= periodNumber) {
             revert PeriodNotEnded();
         }
-        if (!claimAllowed[periodNumber]) {
-            revert ClaimNotAllowed();
+        TotalReward memory _totalReward = totalRewards[periodNumber];
+        if (!_totalReward.isSet) {
+            revert NotSetReward(periodNumber);
         }
+        uint256 totalReward = uint256(_totalReward.amount);
         if (claimed[periodNumber][_msgSender()]) {
             revert AlreadyClaimed();
         } else {
             claimed[periodNumber][_msgSender()] = true;
         }
-        uint256 reward = (totalRewards[periodNumber] *
+        uint256 reward = (totalReward *
             contribution.userContributions(
                 periodNumber,
                 BLOCK_POST_TAG,
