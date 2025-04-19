@@ -95,10 +95,12 @@ contract BlockBuilderRewardTest is Test {
     }
 
     function test_setReward() public {
-        assertEq(builder.alreadySetReward(1), false);
+        (bool isSet, uint248 amount) = builder.totalRewards(1);
+        assertEq(isSet, false);
         builder.setReward(1, 1000);
-        assertEq(builder.totalRewards(1), 1000);
-        assertEq(builder.alreadySetReward(1), true);
+        (isSet, amount) = builder.totalRewards(1);
+        assertEq(amount, 1000);
+        assertEq(isSet, true);
     }
 
     function test_emitSetReward() public {
@@ -115,31 +117,16 @@ contract BlockBuilderRewardTest is Test {
         builder.setReward(1, 1000);
     }
 
-    function test_setRewardClaimAllowed() public {
+    function test_setRewardAlreadySet() public {
         builder.setReward(1, 1000);
-        builder.allowClaim(1);
-        vm.expectRevert(IBlockBuilderReward.ClaimAllowed.selector);
+        vm.expectRevert(IBlockBuilderReward.AlreadySetReward.selector);
         builder.setReward(1, 2000);
     }
 
-    function test_allowClaim() public {
-        builder.setReward(1, 1000);
-        builder.allowClaim(1);
-        assertTrue(builder.claimAllowed(1));
-    }
-
-    function test_allowClaimButNotSetReward() public {
-        bytes memory expectedRevert = abi.encodeWithSelector(IBlockBuilderReward.NotSetReward.selector, 1);
-        vm.expectRevert(expectedRevert);
-        builder.allowClaim(1);
-    }
-
-    function test_nonOwnerAllowClaim() public {
-        vm.prank(nonOwner);
-        bytes memory expectedRevert =
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, nonOwner);
-        vm.expectRevert(expectedRevert);
-        builder.allowClaim(1);
+    function test_setRewardTooLarge() public {
+        uint256 tooLargeAmount = uint256(type(uint248).max) + 1;
+        vm.expectRevert(IBlockBuilderReward.RewardTooLarge.selector);
+        builder.setReward(1, tooLargeAmount);
     }
 
     function test_claimReward() public {
@@ -148,7 +135,6 @@ contract BlockBuilderRewardTest is Test {
         contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
         contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50);
 
-        builder.allowClaim(1);
         vm.prank(user1);
         builder.claimReward(1);
 
@@ -161,7 +147,6 @@ contract BlockBuilderRewardTest is Test {
         contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
         contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50);
 
-        builder.allowClaim(1);
         vm.expectEmit(true, true, true, true);
         emit IBlockBuilderReward.Claimed(1, user1, 500);
         vm.prank(user1);
@@ -176,11 +161,11 @@ contract BlockBuilderRewardTest is Test {
         builder.claimReward(1);
     }
 
-    function test_claimNotAllowed() public {
-        builder.setReward(1, 1000);
+    function test_claimNotSetReward() public {
         contribution.setCurrentPeriod(2);
         vm.prank(user1);
-        vm.expectRevert(IBlockBuilderReward.ClaimNotAllowed.selector);
+        bytes memory expectedRevert = abi.encodeWithSelector(IBlockBuilderReward.NotSetReward.selector, 1);
+        vm.expectRevert(expectedRevert);
         builder.claimReward(1);
     }
 
@@ -189,7 +174,6 @@ contract BlockBuilderRewardTest is Test {
         contribution.setCurrentPeriod(2);
         contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
         contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50);
-        builder.allowClaim(1);
         vm.prank(user1);
         builder.claimReward(1);
         vm.prank(user1);

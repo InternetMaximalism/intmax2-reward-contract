@@ -1,18 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
+/**
+ * @title IBlockBuilderReward
+ * @notice Interface for the BlockBuilderReward contract which manages rewards for block builders
+ * @dev This contract handles the distribution of rewards to users who contribute to block building
+ * based on their contribution scores from the Contribution contract
+ */
 interface IBlockBuilderReward {
-    /// @notice address is zero address
+    /// @notice Error thrown when an address parameter is the zero address
     error AddressZero();
 
     /// @notice Error thrown when a user tries to claim a reward that has already been claimed
     error AlreadyClaimed();
 
-    /// @notice Error thrown when a user tries to claim a reward that is not allowed
-    error ClaimNotAllowed();
+    /// @notice Error thrown when owner tries to set a reward that has already been set
+    error AlreadySetReward();
 
-    /// @notice Error thrown when owner tries to set a reward for a period that has already allowed claim
-    error ClaimAllowed();
+    /// @notice Error thrown when owner tries to set a reward that is bigger than 2^248
+    error RewardTooLarge();
 
     /// @notice Error thrown when a user tries to claim a reward for a period that has not ended
     error PeriodNotEnded();
@@ -27,24 +33,32 @@ interface IBlockBuilderReward {
     event Claimed(uint256 indexed periodNumber, address indexed user, uint256 amount);
 
     /**
-     * @notice Sets the reward for a given period
+     * @notice Structure to store reward information for a specific period
+     * @param isSet Boolean indicating if the reward has been set for this period
+     * @param amount The total reward amount for the period (limited to uint248 to pack it in a single slot)
+     */
+    struct TotalReward {
+        bool isSet;
+        uint248 amount;
+    }
+
+    /**
+     * @notice Sets the total reward amount for a specific period
      * @dev Only callable by the contract owner
      * @param periodNumber The period number for which the reward is being set
-     * @param amount The amount of reward to be set for the given period
+     * @param amount The total amount of tokens to distribute as rewards for the given period
+     * @custom:throws AlreadySetReward if reward for this period has already been set
+     * @custom:throws RewardTooLarge if amount exceeds uint248 max value
      */
     function setReward(uint256 periodNumber, uint256 amount) external;
 
     /**
-     * @notice Allows claiming of rewards for a given period
-     * @dev Only callable by the contract owner
-     * @param periodNumber The period number for which claiming is allowed
-     */
-    function allowClaim(uint256 periodNumber) external;
-
-    /**
-     * @notice Claims the reward for a given period
-     * @dev Only callable by the user who is claiming the reward
+     * @notice Claims the caller's share of rewards for a specific period
+     * @dev The reward amount is calculated based on the user's contribution relative to the total contributions
      * @param periodNumber The period number for which the reward is being claimed
+     * @custom:throws PeriodNotEnded if the specified period has not yet ended
+     * @custom:throws NotSetReward if no reward has been set for the specified period
+     * @custom:throws AlreadyClaimed if the caller has already claimed their reward for this period
      */
     function claimReward(uint256 periodNumber) external;
 }
