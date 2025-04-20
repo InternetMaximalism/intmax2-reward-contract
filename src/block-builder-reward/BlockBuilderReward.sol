@@ -15,7 +15,11 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
  * to block building as recorded in the Contribution contract. It implements the UUPS
  * upgradeable pattern and is owned by a designated admin.
  */
-contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgradeable {
+contract BlockBuilderReward is
+    IBlockBuilderReward,
+    OwnableUpgradeable,
+    UUPSUpgradeable
+{
     /// @notice Contribution tag for identifying block posting activities
     /// @dev Used to query contribution scores from the Contribution contract
     bytes32 constant BLOCK_POST_TAG = keccak256("POST_BLOCK");
@@ -46,7 +50,10 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
      * @param _intmaxToken Address of the INTMAX token used for reward distribution
      * @custom:throws AddressZero if either address parameter is the zero address
      */
-    function initialize(address _contribution, address _intmaxToken) external initializer {
+    function initialize(
+        address _contribution,
+        address _intmaxToken
+    ) external initializer {
         if (_contribution == address(0) || _intmaxToken == address(0)) {
             revert AddressZero();
         }
@@ -64,7 +71,10 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
      * @custom:throws RewardTooLarge if amount exceeds uint248 max value
      * @custom:throws AlreadySetReward if reward for this period has already been set
      */
-    function setReward(uint256 periodNumber, uint256 amount) external onlyOwner {
+    function setReward(
+        uint256 periodNumber,
+        uint256 amount
+    ) external onlyOwner {
         uint248 amount248 = uint248(amount);
         if (amount != uint256(amount248)) {
             revert RewardTooLarge();
@@ -73,7 +83,10 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
         if (totalReward.isSet) {
             revert AlreadySetReward();
         }
-        totalRewards[periodNumber] = TotalReward({isSet: true, amount: amount248});
+        totalRewards[periodNumber] = TotalReward({
+            isSet: true,
+            amount: amount248
+        });
         emit SetReward(periodNumber, amount);
     }
 
@@ -100,10 +113,39 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
         } else {
             claimed[periodNumber][_msgSender()] = true;
         }
-        uint256 reward = (totalReward * contribution.userContributions(periodNumber, BLOCK_POST_TAG, _msgSender()))
-            / contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
+        uint256 reward = (totalReward *
+            contribution.userContributions(
+                periodNumber,
+                BLOCK_POST_TAG,
+                _msgSender()
+            )) / contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
         intmaxToken.transfer(_msgSender(), reward);
         emit Claimed(periodNumber, _msgSender(), reward);
+    }
+
+    function getClaimableReward(
+        uint256 periodNumber,
+        address user
+    ) external view returns (uint256) {
+        if (contribution.getCurrentPeriod() <= periodNumber) {
+            return 0;
+        }
+        TotalReward memory _totalReward = totalRewards[periodNumber];
+        if (!_totalReward.isSet) {
+            return 0;
+        }
+        uint256 totalReward = uint256(_totalReward.amount);
+        if (claimed[periodNumber][_msgSender()]) {
+            return 0;
+        }
+        return
+            (totalReward *
+                contribution.userContributions(
+                    periodNumber,
+                    BLOCK_POST_TAG,
+                    user
+                )) /
+            contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
     }
 
     /**
@@ -111,5 +153,7 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
      * @dev Only the contract owner can authorize upgrades
      * @param newImplementation Address of the new implementation contract
      */
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 }
