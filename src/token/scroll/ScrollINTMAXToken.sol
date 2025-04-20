@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
 /**
  * @title ScrollINTMAXToken
@@ -11,7 +12,11 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
  * @dev This contract implements an ERC20 token with access control and transfer restrictions
  *      that can be lifted by an admin. It includes a DISTRIBUTOR role for privileged transfers.
  */
-contract ScrollINTMAXToken is ERC20, AccessControl {
+contract ScrollINTMAXToken is
+    ERC20Upgradeable,
+    AccessControlUpgradeable,
+    UUPSUpgradeable
+{
     /**
      * @dev Emitted when a transfer is attempted while transfers are not allowed and sender is not a distributor.
      */
@@ -36,8 +41,13 @@ contract ScrollINTMAXToken is ERC20, AccessControl {
      * @param rewardContract Address that will be granted the DISTRIBUTOR role
      * @param mintAmount Initial amount of tokens to mint to the admin
      */
-    constructor(address admin_, address rewardContract, uint256 mintAmount) ERC20("ScrollINTMAX", "sITX") {
+    function initialize(
+        address admin_,
+        address rewardContract,
+        uint256 mintAmount
+    ) external initializer {
         transfersAllowed = false;
+        __ERC20_init("ScrollINTMAX", "sITX");
         _mint(admin_, mintAmount);
         _grantRole(DISTRIBUTOR, rewardContract);
         _grantRole(DEFAULT_ADMIN_ROLE, admin_);
@@ -49,8 +59,12 @@ contract ScrollINTMAXToken is ERC20, AccessControl {
      * @param interfaceId The interface identifier to check
      * @return bool True if the interface is supported
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == type(IERC20).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
+        return
+            interfaceId == type(IERC20).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     /**
@@ -77,7 +91,11 @@ contract ScrollINTMAXToken is ERC20, AccessControl {
      * @param to The address tokens are transferred to
      * @param value The amount of tokens to transfer
      */
-    function _update(address from, address to, uint256 value) internal virtual override {
+    function _update(
+        address from,
+        address to,
+        uint256 value
+    ) internal virtual override {
         _requireTransferAllowed(from, to);
         super._update(from, to, value);
     }
@@ -112,4 +130,12 @@ contract ScrollINTMAXToken is ERC20, AccessControl {
         }
         revert TransferNotAllowed();
     }
+
+    /**
+     * @dev Authorizes an upgrade to a new implementation
+     * @param newImplementation The address of the new implementation contract
+     */
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 }
