@@ -14,19 +14,14 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 contract DeployScrollINTMAXToken is Script {
     ScrollINTMAXToken public token;
 
-    function deploy(
-        uint256 deployerPrivateKey
-    ) public returns (ScrollINTMAXToken) {
+    function deploy(uint256 deployerPrivateKey) public returns (ScrollINTMAXToken) {
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy the implementation contract
         ScrollINTMAXToken implementation = new ScrollINTMAXToken();
 
         // Deploy the proxy contract pointing to the implementation
-        ERC1967Proxy proxy = new ERC1967Proxy(
-            address(implementation),
-            new bytes(0)
-        );
+        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), new bytes(0));
 
         token = ScrollINTMAXToken(address(proxy));
 
