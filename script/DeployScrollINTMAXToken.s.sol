@@ -34,19 +34,4 @@ contract DeployScrollINTMAXToken is Script {
 
         return token;
     }
-
-    function initialize(
-        address admin,
-        address rewardContract,
-        uint256 initialSupply
-    ) public {
-        console.log(
-            "Initializing ScrollINTMAXToken with the following parameters:"
-        );
-        console.log("Admin address:", admin);
-        console.log("Reward contract address:", rewardContract);
-        console.log("Initial supply:", initialSupply);
-
-        token.initialize(admin, rewardContract, initialSupply);
-    }
 }
