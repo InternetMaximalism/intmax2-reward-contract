@@ -4,3 +4,10 @@ out = "out"
 libs = ["lib"]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+[rpc_endpoints]
+scroll-sepolia = "https://scroll-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}"
+scroll = "https://scroll-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}"
+
+[etherscan]
+scroll-sepolia = { key = "${SCROLLSCAN_API_KEY}", url = "https://api-sepolia.scrollscan.com/api" }
+scroll = { key = "${SCROLLSCAN_API_KEY}", url = "https://api.scrollscan.com/api" }
