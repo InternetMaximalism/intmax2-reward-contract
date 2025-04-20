@@ -106,6 +106,15 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
         emit Claimed(periodNumber, _msgSender(), reward);
     }
 
+    /**
+     * @notice Calculates the claimable reward amount for a specific user and period
+     * @dev The reward amount is calculated based on the user's contribution relative to the total contributions
+     * for the specified period and tag. Returns 0 if the period has not ended, no reward has been set,
+     * or the user has already claimed their reward.
+     * @param periodNumber The period number for which to calculate the claimable reward
+     * @param user The address of the user for whom to calculate the claimable reward
+     * @return The amount of tokens the user can claim as reward for the specified period
+     */
     function getClaimableReward(uint256 periodNumber, address user) external view returns (uint256) {
         if (contribution.getCurrentPeriod() <= periodNumber) {
             return 0;
@@ -115,7 +124,7 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
             return 0;
         }
         uint256 totalReward = uint256(_totalReward.amount);
-        if (claimed[periodNumber][_msgSender()]) {
+        if (claimed[periodNumber][user]) {
             return 0;
         }
         return (totalReward * contribution.userContributions(periodNumber, BLOCK_POST_TAG, user))
