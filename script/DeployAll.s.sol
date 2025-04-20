@@ -15,18 +15,18 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
  */
 contract DeployAll is Script {
     function run() public {
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+
         address admin = vm.envAddress("ADMIN_ADDRESS");
         address contributionContract = vm.envAddress(
             "CONTRIBUTION_CONTRACT_ADDRESS"
         );
         uint256 initialSupply = vm.envUint("INITIAL_SUPPLY");
-
-        vm.startBroadcast();
-        deploy(admin, contributionContract, initialSupply);
-        vm.stopBroadcast();
+        deploy(deployerPrivateKey, admin, contributionContract, initialSupply);
     }
 
     function deploy(
+        uint256 deployerPrivateKey,
         address admin,
         address contributionContract,
         uint256 initialSupply
@@ -38,17 +38,20 @@ contract DeployAll is Script {
 
         // deploy token
         DeployScrollINTMAXToken deployToken = new DeployScrollINTMAXToken();
-        ScrollINTMAXToken token = deployToken.deploy();
+        ScrollINTMAXToken token = deployToken.deploy(deployerPrivateKey);
 
         // deploy reward
         DeployBlockBuilderReward deployReward = new DeployBlockBuilderReward();
         BlockBuilderReward reward = deployReward.deploy(
+            deployerPrivateKey,
             contributionContract,
             address(token)
         );
 
         // initialize token
+        vm.startBroadcast(deployerPrivateKey);
         token.initialize(admin, address(reward), initialSupply);
+        vm.stopBroadcast();
 
         console.log("All contracts deployed successfully");
         console.log("Summary:");

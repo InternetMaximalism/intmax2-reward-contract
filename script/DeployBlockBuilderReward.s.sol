@@ -11,40 +11,13 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
  * @dev This script deploys the BlockBuilderReward implementation and a proxy pointing to it
  */
 contract DeployBlockBuilderReward is Script {
-    function run(
-        address contributionContract,
-        address intmaxToken
-    ) public returns (BlockBuilderReward) {
-        return deploy(contributionContract, intmaxToken);
-    }
-
-    function run() public returns (BlockBuilderReward) {
-        address contributionContract = vm.envAddress(
-            "CONTRIBUTION_CONTRACT_ADDRESS"
-        );
-        address intmaxToken = vm.envAddress("INTMAX_TOKEN_ADDRESS");
-        // Log deployment parameters
-        console.log(
-            "Deploying BlockBuilderReward with the following parameters:"
-        );
-        console.log("Contribution contract address:", contributionContract);
-        console.log("INTMAX token address:", intmaxToken);
-
-        vm.startBroadcast();
-
-        BlockBuilderReward reward = deploy(contributionContract, intmaxToken);
-
-        vm.stopBroadcast();
-
-        console.log("BlockBuilderReward deployment completed");
-        console.log("BlockBuilderReward deployed at:", address(reward));
-        return reward;
-    }
-
     function deploy(
+        uint256 deployerPrivateKey,
         address contributionContract,
         address intmaxToken
     ) public returns (BlockBuilderReward) {
+        vm.startBroadcast(deployerPrivateKey);
+
         BlockBuilderReward implementation = new BlockBuilderReward();
 
         // Prepare the initialization data
@@ -64,7 +37,7 @@ contract DeployBlockBuilderReward is Script {
         BlockBuilderReward blockBuilderReward = BlockBuilderReward(
             address(proxy)
         );
-
+        vm.stopBroadcast();
         return blockBuilderReward;
     }
 }
