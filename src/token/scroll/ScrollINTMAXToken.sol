@@ -40,7 +40,7 @@ contract ScrollINTMAXToken is ERC20Upgradeable, AccessControlUpgradeable, UUPSUp
     function initialize(address admin_, address rewardContract, uint256 mintAmount) external initializer {
         transfersAllowed = false;
         __ERC20_init("ScrollINTMAX", "sITX");
-        _mint(admin_, mintAmount);
+        _mint(rewardContract, mintAmount);
         _grantRole(DISTRIBUTOR, rewardContract);
         _grantRole(DEFAULT_ADMIN_ROLE, admin_);
     }

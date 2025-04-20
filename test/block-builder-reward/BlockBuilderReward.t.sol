@@ -194,4 +194,67 @@ contract BlockBuilderRewardTest is Test {
         vm.prank(address(this));
         builder.upgradeToAndCall(address(newImplementation), "");
     }
+
+    function test_getClaimableReward_periodNotEnded() public {
+        // Set up the test
+        builder.setReward(1, 1000);
+        contribution.setCurrentPeriod(1); // Period 1 has not ended
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50);
+
+        // Check that getClaimableReward returns 0 when period has not ended
+        uint256 claimableReward = builder.getClaimableReward(1, user1);
+        assertEq(claimableReward, 0, "Should return 0 when period has not ended");
+    }
+
+    function test_getClaimableReward_rewardNotSet() public {
+        // Set up the test
+        contribution.setCurrentPeriod(2); // Period 1 has ended
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50);
+
+        // Check that getClaimableReward returns 0 when reward is not set
+        uint256 claimableReward = builder.getClaimableReward(1, user1);
+        assertEq(claimableReward, 0, "Should return 0 when reward is not set");
+    }
+
+    function test_getClaimableReward_alreadyClaimed() public {
+        // Set up the test
+        builder.setReward(1, 1000);
+        contribution.setCurrentPeriod(2); // Period 1 has ended
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50);
+
+        // Claim the reward first
+        vm.prank(user1);
+        builder.claimReward(1);
+
+        // Check that getClaimableReward returns 0 when already claimed
+        uint256 claimableReward = builder.getClaimableReward(1, user1);
+        assertEq(claimableReward, 0, "Should return 0 when already claimed");
+    }
+
+    function test_getClaimableReward_correctCalculation() public {
+        // Set up the test
+        builder.setReward(1, 1000);
+        contribution.setCurrentPeriod(2); // Period 1 has ended
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50);
+
+        // Check that getClaimableReward returns the correct amount
+        uint256 claimableReward = builder.getClaimableReward(1, user1);
+        assertEq(claimableReward, 500, "Should return correct reward amount (1000 * 50 / 100 = 500)");
+    }
+
+    function test_getClaimableReward_zeroContribution() public {
+        // Set up the test
+        builder.setReward(1, 1000);
+        contribution.setCurrentPeriod(2); // Period 1 has ended
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 0);
+
+        // Check that getClaimableReward returns 0 when user has no contribution
+        uint256 claimableReward = builder.getClaimableReward(1, user1);
+        assertEq(claimableReward, 0, "Should return 0 when user has no contribution");
+    }
 }
