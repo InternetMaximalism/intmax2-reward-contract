@@ -4,6 +4,7 @@ pragma solidity 0.8.27;
 import {Script, console} from "forge-std/Script.sol";
 import {StdUtils} from "forge-std/StdUtils.sol";
 import {ScrollINTMAXToken} from "../src/token/scroll/ScrollINTMAXToken.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 /**
  * @title DeployScrollINTMAXToken
@@ -11,33 +12,46 @@ import {ScrollINTMAXToken} from "../src/token/scroll/ScrollINTMAXToken.sol";
  * @dev This script deploys the ScrollINTMAXToken contract with the specified parameters
  */
 contract DeployScrollINTMAXToken is Script {
-    function run() public returns (ScrollINTMAXToken) {
-        address admin = vm.envAddress("ADMIN");
-        address rewardContract = vm.envAddress("REWARD_CONTRACT");
-        uint256 initialSupply = vm.envUint("INITIAL_SUPPLY");
+    ScrollINTMAXToken public token;
 
-        // Log deployment parameters
+    function run() public {
+        vm.startBroadcast();
+        deploy();
+        vm.stopBroadcast();
+    }
+
+    function deploy() public returns (ScrollINTMAXToken) {
+        // Deploy the implementation contract
+        ScrollINTMAXToken implementation = new ScrollINTMAXToken();
         console.log(
-            "Deploying ScrollINTMAXToken with the following parameters:"
+            "ScrollINTMAXToken implementation deployed at:",
+            address(implementation)
+        );
+
+        // Deploy the proxy contract pointing to the implementation
+        ERC1967Proxy proxy = new ERC1967Proxy(
+            address(implementation),
+            new bytes(0)
+        );
+        console.log("ScrollINTMAXToken proxy deployed at:", address(proxy));
+
+        token = ScrollINTMAXToken(address(proxy));
+
+        return token;
+    }
+
+    function initialize(
+        address admin,
+        address rewardContract,
+        uint256 initialSupply
+    ) public {
+        console.log(
+            "Initializing ScrollINTMAXToken with the following parameters:"
         );
         console.log("Admin address:", admin);
         console.log("Reward contract address:", rewardContract);
         console.log("Initial supply:", initialSupply);
 
-        vm.startBroadcast();
-
-        // Deploy the ScrollINTMAXToken contract
-        ScrollINTMAXToken token = new ScrollINTMAXToken(
-            admin,
-            rewardContract,
-            initialSupply
-        );
-
-        vm.stopBroadcast();
-
-        // Log the deployed contract address
-        console.log("ScrollINTMAXToken deployed at:", address(token));
-
-        return token;
+        token.initialize(admin, rewardContract, initialSupply);
     }
 }
