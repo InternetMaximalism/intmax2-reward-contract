@@ -34,15 +34,11 @@ A contract for managing and distributing rewards to block builders. It calculate
 
 ## Deployment
 
-The repository includes deployment scripts for both contracts. See [script/README.md](script/README.md) for detailed deployment instructions.
-
-### Quick Deployment
-
 To deploy both contracts in sequence:
 
 ```bash
-# Deploy with default parameters
-forge script script/DeployAll.s.sol --rpc-url <RPC_URL> --broadcast --verify
+# Deploy to Scroll Sepolia 
+forge script script/DeployAll.s.sol --rpc-url scroll-sepolia --broadcast --verify
 ```
 
 ## Testing
