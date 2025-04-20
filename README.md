@@ -42,10 +42,7 @@ To deploy both contracts in sequence:
 
 ```bash
 # Deploy with default parameters
-forge script script/DeployAll.s.sol --rpc-url <RPC_URL> --private-key <PRIVATE_KEY> --broadcast
-
-# Deploy with custom parameters
-forge script script/DeployAll.s.sol --sig "run(address,address,uint256)" <ADMIN_ADDRESS> <CONTRIBUTION_CONTRACT_ADDRESS> <INITIAL_SUPPLY> --rpc-url <RPC_URL> --private-key <PRIVATE_KEY> --broadcast
+forge script script/DeployAll.s.sol --rpc-url <RPC_URL> --broadcast --verify
 ```
 
 ## Testing
