@@ -18,16 +18,22 @@ contract DeployAll is Script {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
 
         address admin = vm.envAddress("ADMIN_ADDRESS");
+        address rewardManagerAddress = vm.envAddress("REWARD_MANAGER_ADDRESS");
         address contributionContract = vm.envAddress("CONTRIBUTION_CONTRACT_ADDRESS");
         uint256 initialSupply = vm.envUint("INITIAL_SUPPLY");
-        deploy(deployerPrivateKey, admin, contributionContract, initialSupply);
+        deploy(deployerPrivateKey, admin, rewardManagerAddress, contributionContract, initialSupply);
     }
 
-    function deploy(uint256 deployerPrivateKey, address admin, address contributionContract, uint256 initialSupply)
-        public
-    {
+    function deploy(
+        uint256 deployerPrivateKey,
+        address admin,
+        address rewardManagerAddress,
+        address contributionContract,
+        uint256 initialSupply
+    ) public {
         console.log("Starting deployment of all contracts");
         console.log("Admin address:", admin);
+        console.log("Reward manager address:", rewardManagerAddress);
         console.log("Contribution contract address:", contributionContract);
         console.log("Initial supply:", initialSupply);
 
@@ -38,7 +44,7 @@ contract DeployAll is Script {
         // deploy reward
         DeployBlockBuilderReward deployReward = new DeployBlockBuilderReward();
         BlockBuilderReward reward =
-            deployReward.deploy(deployerPrivateKey, admin, admin, contributionContract, address(token));
+            deployReward.deploy(deployerPrivateKey, admin, rewardManagerAddress, contributionContract, address(token));
 
         // initialize token
         vm.startBroadcast(deployerPrivateKey);
