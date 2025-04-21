@@ -16,6 +16,8 @@ import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
  * upgradeable pattern and uses AccessControl for role-based permissions.
  */
 contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UUPSUpgradeable {
+    /// @notice Role that grants permission to set reward amounts for distribution periods
+    /// @dev Accounts with this role can call the setReward function to allocate tokens for each period
     bytes32 public constant REWARD_MANAGER_ROLE = keccak256("REWARD_MANAGER_ROLE");
 
     /// @notice Contribution tag for identifying block posting activities
