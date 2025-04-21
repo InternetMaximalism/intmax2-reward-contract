@@ -77,6 +77,11 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
         emit SetReward(periodNumber, amount);
     }
 
+    function getReward(uint256 periodNumber) external view returns (bool, uint256) {
+        TotalReward memory totalReward = totalRewards[periodNumber];
+        return (totalReward.isSet, uint256(totalReward.amount));
+    }
+
     /**
      * @notice Claims the caller's share of rewards for a specific period
      * @dev The reward amount is calculated based on the user's contribution relative to the total contributions
