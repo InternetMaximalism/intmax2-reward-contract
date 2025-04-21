@@ -203,8 +203,7 @@ contract BlockBuilderRewardTest is Test {
     function test_claimNotSetReward() public {
         contribution.setCurrentPeriod(2);
         vm.prank(user1);
-        bytes memory expectedRevert = abi.encodeWithSelector(IBlockBuilderReward.NotSetReward.selector, 1);
-        vm.expectRevert(expectedRevert);
+        vm.expectRevert(IBlockBuilderReward.NotSetReward.selector);
         builder.claimReward(1);
     }
 
