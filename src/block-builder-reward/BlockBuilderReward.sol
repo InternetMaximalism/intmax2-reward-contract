@@ -77,6 +77,14 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
         emit SetReward(periodNumber, amount);
     }
 
+    /**
+     * @notice Retrieves the reward information for a specific period
+     * @dev Returns whether a reward has been set and the reward amount for the given period
+     * @param periodNumber The period number for which to retrieve reward information
+     * @return A tuple containing:
+     *         - A boolean indicating whether a reward has been set for the period
+     *         - The total reward amount for the period (returns 0 if not set)
+     */
     function getReward(uint256 periodNumber) external view returns (bool, uint256) {
         TotalReward memory totalReward = totalRewards[periodNumber];
         return (totalReward.isSet, uint256(totalReward.amount));

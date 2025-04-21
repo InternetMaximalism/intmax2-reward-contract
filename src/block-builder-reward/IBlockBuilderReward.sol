@@ -72,4 +72,14 @@ interface IBlockBuilderReward {
      * @return The amount of tokens the user can claim as reward for the specified period
      */
     function getClaimableReward(uint256 periodNumber, address user) external view returns (uint256);
+
+    /**
+     * @notice Retrieves the reward information for a specific period
+     * @dev Returns whether a reward has been set and the reward amount for the given period
+     * @param periodNumber The period number for which to retrieve reward information
+     * @return A tuple containing:
+     *         - A boolean indicating whether a reward has been set for the period
+     *         - The total reward amount for the period (returns 0 if not set)
+     */
+    function getReward(uint256 periodNumber) external view returns (bool, uint256);
 }

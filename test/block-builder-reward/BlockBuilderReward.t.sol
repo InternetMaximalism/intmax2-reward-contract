@@ -257,4 +257,25 @@ contract BlockBuilderRewardTest is Test {
         uint256 claimableReward = builder.getClaimableReward(1, user1);
         assertEq(claimableReward, 0, "Should return 0 when user has no contribution");
     }
+
+    function test_blockbuilderreward_getReward_notSet() public view {
+        // When reward is not set for a period
+        (bool isSet, uint256 amount) = builder.getReward(1);
+
+        // Should return (false, 0)
+        assertEq(isSet, false, "isSet should be false when reward is not set");
+        assertEq(amount, 0, "amount should be 0 when reward is not set");
+    }
+
+    function test_blockbuilderreward_getReward_isSet() public {
+        // Set a reward for period 1
+        builder.setReward(1, 1000);
+
+        // When reward is set for a period
+        (bool isSet, uint256 amount) = builder.getReward(1);
+
+        // Should return (true, rewardAmount)
+        assertEq(isSet, true, "isSet should be true when reward is set");
+        assertEq(amount, 1000, "amount should match the set reward amount");
+    }
 }
