@@ -24,7 +24,7 @@ interface IBlockBuilderReward {
     error PeriodNotEnded();
 
     /// @notice Error thrown when a reward is not set for a given period
-    error NotSetReward(uint256 periodNumber);
+    error NotSetReward();
 
     /// @notice Emitted when a reward is set.
     event SetReward(uint256 indexed periodNumber, uint256 amount);
@@ -44,13 +44,23 @@ interface IBlockBuilderReward {
 
     /**
      * @notice Sets the total reward amount for a specific period
-     * @dev Only callable by the contract owner
+     * @dev Only callable by accounts with the REWARD_MANAGER_ROLE
      * @param periodNumber The period number for which the reward is being set
      * @param amount The total amount of tokens to distribute as rewards for the given period
      * @custom:throws AlreadySetReward if reward for this period has already been set
      * @custom:throws RewardTooLarge if amount exceeds uint248 max value
      */
     function setReward(uint256 periodNumber, uint256 amount) external;
+
+    /**
+     * @notice Retrieves the reward information for a specific period
+     * @dev Returns whether a reward has been set and the reward amount for the given period
+     * @param periodNumber The period number for which to retrieve reward information
+     * @return A tuple containing:
+     *         - A boolean indicating whether a reward has been set for the period
+     *         - The total reward amount for the period (returns 0 if not set)
+     */
+    function getReward(uint256 periodNumber) external view returns (bool, uint256);
 
     /**
      * @notice Claims the caller's share of rewards for a specific period
@@ -72,14 +82,4 @@ interface IBlockBuilderReward {
      * @return The amount of tokens the user can claim as reward for the specified period
      */
     function getClaimableReward(uint256 periodNumber, address user) external view returns (uint256);
-
-    /**
-     * @notice Retrieves the reward information for a specific period
-     * @dev Returns whether a reward has been set and the reward amount for the given period
-     * @param periodNumber The period number for which to retrieve reward information
-     * @return A tuple containing:
-     *         - A boolean indicating whether a reward has been set for the period
-     *         - The total reward amount for the period (returns 0 if not set)
-     */
-    function getReward(uint256 periodNumber) external view returns (bool, uint256);
 }

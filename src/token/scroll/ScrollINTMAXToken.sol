@@ -33,16 +33,17 @@ contract ScrollINTMAXToken is ERC20Upgradeable, AccessControlUpgradeable, UUPSUp
     /**
      * @notice Initializes the ScrollINTMAX token contract
      * @dev Sets up initial token supply, roles, and disables transfers by default
-     * @param admin_ Address that will be granted the DEFAULT_ADMIN_ROLE
-     * @param rewardContract Address that will be granted the DISTRIBUTOR role
-     * @param mintAmount Initial amount of tokens to mint to the admin
+     * @param _admin Address that will be granted the DEFAULT_ADMIN_ROLE
+     * @param _rewardContract Address that will be granted the DISTRIBUTOR role
+     * @param _mintAmount Initial amount of tokens to mint to the admin
      */
-    function initialize(address admin_, address rewardContract, uint256 mintAmount) external initializer {
+    function initialize(address _admin, address _rewardContract, uint256 _mintAmount) external initializer {
         transfersAllowed = false;
         __ERC20_init("ScrollINTMAX", "sITX");
-        _mint(rewardContract, mintAmount);
-        _grantRole(DISTRIBUTOR, rewardContract);
-        _grantRole(DEFAULT_ADMIN_ROLE, admin_);
+        __AccessControl_init();
+        _mint(_rewardContract, _mintAmount);
+        _grantRole(DISTRIBUTOR, _rewardContract);
+        _grantRole(DEFAULT_ADMIN_ROLE, _admin);
     }
 
     /**

@@ -6,16 +6,20 @@ import {IContribution} from "@intmax2contract/contracts/contribution/IContributi
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 /**
  * @title BlockBuilderReward
  * @notice Contract for managing and distributing rewards to block builders
  * @dev This contract calculates and distributes rewards based on users' contributions
  * to block building as recorded in the Contribution contract. It implements the UUPS
- * upgradeable pattern and is owned by a designated admin.
+ * upgradeable pattern and uses AccessControl for role-based permissions.
  */
-contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgradeable {
+contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UUPSUpgradeable {
+    /// @notice Role that grants permission to set reward amounts for distribution periods
+    /// @dev Accounts with this role can call the setReward function to allocate tokens for each period
+    bytes32 public constant REWARD_MANAGER_ROLE = keccak256("REWARD_MANAGER_ROLE");
+
     /// @notice Contribution tag for identifying block posting activities
     /// @dev Used to query contribution scores from the Contribution contract
     bytes32 constant BLOCK_POST_TAG = keccak256("POST_BLOCK");
@@ -42,29 +46,39 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
     /**
      * @notice Initializes the contract with required dependencies
      * @dev This function can only be called once due to the initializer modifier
+     * @param _admin Address that will be granted the DEFAULT_ADMIN_ROLE
+     * @param _rewardManager Address that will be granted the REWARD_MANAGER_ROLE
      * @param _contribution Address of the Contribution contract for accessing contribution scores
      * @param _intmaxToken Address of the INTMAX token used for reward distribution
-     * @custom:throws AddressZero if either address parameter is the zero address
+     * @custom:throws AddressZero if any address parameter is the zero address
      */
-    function initialize(address _contribution, address _intmaxToken) external initializer {
-        if (_contribution == address(0) || _intmaxToken == address(0)) {
+    function initialize(address _admin, address _rewardManager, address _contribution, address _intmaxToken)
+        external
+        initializer
+    {
+        if (
+            _admin == address(0) || _rewardManager == address(0) || _contribution == address(0)
+                || _intmaxToken == address(0)
+        ) {
             revert AddressZero();
         }
-        __Ownable_init(_msgSender());
+        __AccessControl_init();
         __UUPSUpgradeable_init();
+        _grantRole(DEFAULT_ADMIN_ROLE, _admin);
+        _grantRole(REWARD_MANAGER_ROLE, _rewardManager);
         contribution = IContribution(_contribution);
         intmaxToken = IERC20(_intmaxToken);
     }
 
     /**
      * @notice Sets the total reward amount for a specific period
-     * @dev Only callable by the contract owner
+     * @dev Only callable by accounts with the REWARD_MANAGER_ROLE
      * @param periodNumber The period number for which the reward is being set
      * @param amount The total amount of tokens to distribute as rewards for the given period
      * @custom:throws RewardTooLarge if amount exceeds uint248 max value
      * @custom:throws AlreadySetReward if reward for this period has already been set
      */
-    function setReward(uint256 periodNumber, uint256 amount) external onlyOwner {
+    function setReward(uint256 periodNumber, uint256 amount) external onlyRole(REWARD_MANAGER_ROLE) {
         uint248 amount248 = uint248(amount);
         if (amount != uint256(amount248)) {
             revert RewardTooLarge();
@@ -105,7 +119,7 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
         }
         TotalReward memory _totalReward = totalRewards[periodNumber];
         if (!_totalReward.isSet) {
-            revert NotSetReward(periodNumber);
+            revert NotSetReward();
         }
         uint256 totalReward = uint256(_totalReward.amount);
         if (claimed[periodNumber][_msgSender()]) {
@@ -146,8 +160,8 @@ contract BlockBuilderReward is IBlockBuilderReward, OwnableUpgradeable, UUPSUpgr
 
     /**
      * @notice Authorizes an upgrade to a new implementation
-     * @dev Only the contract owner can authorize upgrades
+     * @dev Only accounts with the DEFAULT_ADMIN_ROLE can authorize upgrades
      * @param newImplementation Address of the new implementation contract
      */
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 }
