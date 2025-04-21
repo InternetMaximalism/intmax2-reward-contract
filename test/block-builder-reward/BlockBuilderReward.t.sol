@@ -6,7 +6,8 @@ import {BlockBuilderReward} from "../../src/block-builder-reward/BlockBuilderRew
 import {IBlockBuilderReward} from "../../src/block-builder-reward/IBlockBuilderReward.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract testIntMaxToken is ERC20 {
@@ -50,7 +51,9 @@ contract BlockBuilderRewardTest is Test {
     BlockBuilderReward public builder;
     testIntMaxToken public token;
     TestContribution public contribution;
-    address private nonOwner = address(0x99);
+    address private admin = address(this);
+    address private rewardManager = address(0x88);
+    address private nonAdmin = address(0x99);
     address private user1 = address(0x1);
 
     function setUp() public {
@@ -60,18 +63,20 @@ contract BlockBuilderRewardTest is Test {
 
         ERC1967Proxy proxy = new ERC1967Proxy(
             address(implementation),
-            abi.encodeWithSelector(BlockBuilderReward.initialize.selector, address(contribution), address(token))
+            abi.encodeWithSelector(
+                BlockBuilderReward.initialize.selector, admin, rewardManager, address(contribution), address(token)
+            )
         );
 
         builder = BlockBuilderReward(address(proxy));
-        vm.prank(address(this));
-        builder.transferOwnership(address(this));
         token.mint(address(builder));
     }
 
-    function test_initializeOwnerAddressSet() public view {
-        address owner = builder.owner();
-        assertEq(owner, address(this));
+    function test_initializeRolesSet() public view {
+        assertTrue(builder.hasRole(builder.DEFAULT_ADMIN_ROLE(), admin), "Admin role not set correctly");
+        assertTrue(
+            builder.hasRole(builder.REWARD_MANAGER_ROLE(), rewardManager), "Reward manager role not set correctly"
+        );
     }
 
     function test_initializeZeroAddress1() public {
@@ -80,7 +85,9 @@ contract BlockBuilderRewardTest is Test {
 
         new ERC1967Proxy(
             address(implementation),
-            abi.encodeWithSelector(BlockBuilderReward.initialize.selector, address(0), address(1))
+            abi.encodeWithSelector(
+                BlockBuilderReward.initialize.selector, address(0), rewardManager, address(contribution), address(token)
+            )
         );
     }
 
@@ -90,13 +97,40 @@ contract BlockBuilderRewardTest is Test {
 
         new ERC1967Proxy(
             address(implementation),
-            abi.encodeWithSelector(BlockBuilderReward.initialize.selector, address(1), address(0))
+            abi.encodeWithSelector(
+                BlockBuilderReward.initialize.selector, admin, address(0), address(contribution), address(token)
+            )
+        );
+    }
+
+    function test_initializeZeroAddress3() public {
+        BlockBuilderReward implementation = new BlockBuilderReward();
+        vm.expectRevert(IBlockBuilderReward.AddressZero.selector);
+
+        new ERC1967Proxy(
+            address(implementation),
+            abi.encodeWithSelector(
+                BlockBuilderReward.initialize.selector, admin, rewardManager, address(0), address(token)
+            )
+        );
+    }
+
+    function test_initializeZeroAddress4() public {
+        BlockBuilderReward implementation = new BlockBuilderReward();
+        vm.expectRevert(IBlockBuilderReward.AddressZero.selector);
+
+        new ERC1967Proxy(
+            address(implementation),
+            abi.encodeWithSelector(
+                BlockBuilderReward.initialize.selector, admin, rewardManager, address(contribution), address(0)
+            )
         );
     }
 
     function test_setReward() public {
         (bool isSet, uint248 amount) = builder.totalRewards(1);
         assertEq(isSet, false);
+        vm.prank(rewardManager);
         builder.setReward(1, 1000);
         (isSet, amount) = builder.totalRewards(1);
         assertEq(amount, 1000);
@@ -106,30 +140,33 @@ contract BlockBuilderRewardTest is Test {
     function test_emitSetReward() public {
         vm.expectEmit(true, true, true, true);
         emit IBlockBuilderReward.SetReward(1, 1000);
+        vm.prank(rewardManager);
         builder.setReward(1, 1000);
     }
 
-    function test_nonOwnerSetReward() public {
-        vm.prank(nonOwner);
-        bytes memory expectedRevert =
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, nonOwner);
-        vm.expectRevert(expectedRevert);
+    function test_nonRewardManagerSetReward() public {
+        vm.prank(nonAdmin);
+        vm.expectRevert();
         builder.setReward(1, 1000);
     }
 
     function test_setRewardAlreadySet() public {
+        vm.prank(rewardManager);
         builder.setReward(1, 1000);
+        vm.prank(rewardManager);
         vm.expectRevert(IBlockBuilderReward.AlreadySetReward.selector);
         builder.setReward(1, 2000);
     }
 
     function test_setRewardTooLarge() public {
         uint256 tooLargeAmount = uint256(type(uint248).max) + 1;
+        vm.prank(rewardManager);
         vm.expectRevert(IBlockBuilderReward.RewardTooLarge.selector);
         builder.setReward(1, tooLargeAmount);
     }
 
     function test_claimReward() public {
+        vm.prank(rewardManager);
         builder.setReward(1, 1000);
         contribution.setCurrentPeriod(2);
         contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
@@ -142,6 +179,7 @@ contract BlockBuilderRewardTest is Test {
     }
 
     function test_emitClaimed() public {
+        vm.prank(rewardManager);
         builder.setReward(1, 1000);
         contribution.setCurrentPeriod(2);
         contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
@@ -154,6 +192,7 @@ contract BlockBuilderRewardTest is Test {
     }
 
     function test_PeriodNotEnded() public {
+        vm.prank(rewardManager);
         builder.setReward(1, 1000);
         contribution.setCurrentPeriod(1);
         vm.prank(user1);
@@ -170,6 +209,7 @@ contract BlockBuilderRewardTest is Test {
     }
 
     function test_alreadyClaimed() public {
+        vm.prank(rewardManager);
         builder.setReward(1, 1000);
         contribution.setCurrentPeriod(2);
         contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
@@ -182,21 +222,20 @@ contract BlockBuilderRewardTest is Test {
     }
 
     function test_unauthorizedUpgrade() public {
-        vm.prank(nonOwner);
-        bytes memory expectedRevert =
-            abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, nonOwner);
-        vm.expectRevert(expectedRevert);
+        vm.prank(nonAdmin);
+        vm.expectRevert();
         builder.upgradeToAndCall(address(0x3), "");
     }
 
     function test_authorizedUpgrade() public {
         BlockBuilderReward2 newImplementation = new BlockBuilderReward2();
-        vm.prank(address(this));
+        vm.prank(admin);
         builder.upgradeToAndCall(address(newImplementation), "");
     }
 
     function test_getClaimableReward_periodNotEnded() public {
         // Set up the test
+        vm.prank(rewardManager);
         builder.setReward(1, 1000);
         contribution.setCurrentPeriod(1); // Period 1 has not ended
         contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
@@ -220,6 +259,7 @@ contract BlockBuilderRewardTest is Test {
 
     function test_getClaimableReward_alreadyClaimed() public {
         // Set up the test
+        vm.prank(rewardManager);
         builder.setReward(1, 1000);
         contribution.setCurrentPeriod(2); // Period 1 has ended
         contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
@@ -236,6 +276,7 @@ contract BlockBuilderRewardTest is Test {
 
     function test_getClaimableReward_correctCalculation() public {
         // Set up the test
+        vm.prank(rewardManager);
         builder.setReward(1, 1000);
         contribution.setCurrentPeriod(2); // Period 1 has ended
         contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
@@ -248,6 +289,7 @@ contract BlockBuilderRewardTest is Test {
 
     function test_getClaimableReward_zeroContribution() public {
         // Set up the test
+        vm.prank(rewardManager);
         builder.setReward(1, 1000);
         contribution.setCurrentPeriod(2); // Period 1 has ended
         contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
@@ -269,6 +311,7 @@ contract BlockBuilderRewardTest is Test {
 
     function test_blockbuilderreward_getReward_isSet() public {
         // Set a reward for period 1
+        vm.prank(rewardManager);
         builder.setReward(1, 1000);
 
         // When reward is set for a period

@@ -13,7 +13,7 @@ import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
  * @notice Contract for managing and distributing rewards to block builders
  * @dev This contract calculates and distributes rewards based on users' contributions
  * to block building as recorded in the Contribution contract. It implements the UUPS
- * upgradeable pattern and is owned by a designated admin.
+ * upgradeable pattern and uses AccessControl for role-based permissions.
  */
 contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant REWARD_MANAGER_ROLE = keccak256("REWARD_MANAGER_ROLE");
@@ -44,9 +44,11 @@ contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UU
     /**
      * @notice Initializes the contract with required dependencies
      * @dev This function can only be called once due to the initializer modifier
+     * @param _admin Address that will be granted the DEFAULT_ADMIN_ROLE
+     * @param _rewardManager Address that will be granted the REWARD_MANAGER_ROLE
      * @param _contribution Address of the Contribution contract for accessing contribution scores
      * @param _intmaxToken Address of the INTMAX token used for reward distribution
-     * @custom:throws AddressZero if either address parameter is the zero address
+     * @custom:throws AddressZero if any address parameter is the zero address
      */
     function initialize(address _admin, address _rewardManager, address _contribution, address _intmaxToken)
         external
@@ -68,7 +70,7 @@ contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UU
 
     /**
      * @notice Sets the total reward amount for a specific period
-     * @dev Only callable by the contract owner
+     * @dev Only callable by accounts with the REWARD_MANAGER_ROLE
      * @param periodNumber The period number for which the reward is being set
      * @param amount The total amount of tokens to distribute as rewards for the given period
      * @custom:throws RewardTooLarge if amount exceeds uint248 max value
@@ -156,7 +158,7 @@ contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UU
 
     /**
      * @notice Authorizes an upgrade to a new implementation
-     * @dev Only the contract owner can authorize upgrades
+     * @dev Only accounts with the DEFAULT_ADMIN_ROLE can authorize upgrades
      * @param newImplementation Address of the new implementation contract
      */
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}

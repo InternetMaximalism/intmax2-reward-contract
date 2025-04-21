@@ -44,7 +44,7 @@ interface IBlockBuilderReward {
 
     /**
      * @notice Sets the total reward amount for a specific period
-     * @dev Only callable by the contract owner
+     * @dev Only callable by accounts with the REWARD_MANAGER_ROLE
      * @param periodNumber The period number for which the reward is being set
      * @param amount The total amount of tokens to distribute as rewards for the given period
      * @custom:throws AlreadySetReward if reward for this period has already been set

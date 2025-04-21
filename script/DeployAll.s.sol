@@ -37,7 +37,8 @@ contract DeployAll is Script {
 
         // deploy reward
         DeployBlockBuilderReward deployReward = new DeployBlockBuilderReward();
-        BlockBuilderReward reward = deployReward.deploy(deployerPrivateKey, contributionContract, address(token));
+        BlockBuilderReward reward =
+            deployReward.deploy(deployerPrivateKey, admin, admin, contributionContract, address(token));
 
         // initialize token
         vm.startBroadcast(deployerPrivateKey);
