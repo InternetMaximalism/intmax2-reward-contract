@@ -24,7 +24,7 @@ interface IBlockBuilderReward {
     error PeriodNotEnded();
 
     /// @notice Error thrown when a reward is not set for a given period
-    error NotSetReward(uint256 periodNumber);
+    error NotSetReward();
 
     /// @notice Emitted when a reward is set.
     event SetReward(uint256 indexed periodNumber, uint256 amount);

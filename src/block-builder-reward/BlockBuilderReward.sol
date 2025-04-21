@@ -119,7 +119,7 @@ contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UU
         }
         TotalReward memory _totalReward = totalRewards[periodNumber];
         if (!_totalReward.isSet) {
-            revert NotSetReward(periodNumber);
+            revert NotSetReward();
         }
         uint256 totalReward = uint256(_totalReward.amount);
         if (claimed[periodNumber][_msgSender()]) {
