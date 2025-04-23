@@ -113,7 +113,7 @@ contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UU
      * @custom:throws NotSetReward if no reward has been set for the specified period
      * @custom:throws AlreadyClaimed if the caller has already claimed their reward for this period
      */
-    function claimReward(uint256 periodNumber) external {
+    function claimReward(uint256 periodNumber) public {
         if (contribution.getCurrentPeriod() <= periodNumber) {
             revert PeriodNotEnded();
         }
@@ -131,6 +131,21 @@ contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UU
             / contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
         intmaxToken.transfer(_msgSender(), reward);
         emit Claimed(periodNumber, _msgSender(), reward);
+    }
+
+    /**
+     * @notice Claims the caller's share of rewards for multiple periods in a single transaction
+     * @dev Calls claimReward for each period number in the array, which performs all necessary validations
+     * @param periodNumbers An array of period numbers for which rewards are being claimed
+     * @custom:throws PeriodNotEnded if any specified period has not yet ended
+     * @custom:throws NotSetReward if no reward has been set for any specified period
+     * @custom:throws AlreadyClaimed if the caller has already claimed their reward for any period
+     */
+    function batchClaimReward(uint256[] calldata periodNumbers) external {
+        for (uint256 i = 0; i < periodNumbers.length; i++) {
+            uint256 period = periodNumbers[i];
+            claimReward(period);
+        }
     }
 
     /**
