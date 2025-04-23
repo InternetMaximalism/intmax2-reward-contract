@@ -73,6 +73,16 @@ interface IBlockBuilderReward {
     function claimReward(uint256 periodNumber) external;
 
     /**
+     * @notice Claims the caller's share of rewards for multiple periods in a single transaction
+     * @dev Calls claimReward for each period number in the array
+     * @param periodNumbers An array of period numbers for which rewards are being claimed
+     * @custom:throws PeriodNotEnded if any specified period has not yet ended
+     * @custom:throws NotSetReward if no reward has been set for any specified period
+     * @custom:throws AlreadyClaimed if the caller has already claimed their reward for any period
+     */
+    function batchClaimReward(uint256[] calldata periodNumbers) external;
+
+    /**
      * @notice Calculates the claimable reward amount for a specific user and period
      * @dev The reward amount is calculated based on the user's contribution relative to the total contributions
      * for the specified period and tag. Returns 0 if the period has not ended, no reward has been set,
