@@ -490,4 +490,20 @@ contract BlockBuilderRewardTest is Test {
         // Balance should remain unchanged
         assertEq(token.balanceOf(user1), 0);
     }
+
+    function test_blockbuilderreward_getCurrentPeriod() public {
+        // Set a specific period in the contribution contract
+        uint256 expectedPeriod = 42;
+        contribution.setCurrentPeriod(expectedPeriod);
+
+        // Call getCurrentPeriod and verify it returns the correct value
+        uint256 actualPeriod = builder.getCurrentPeriod();
+
+        // Assert that the returned period matches the expected period
+        assertEq(
+            actualPeriod,
+            expectedPeriod,
+            "getCurrentPeriod should return the current period from the contribution contract"
+        );
+    }
 }

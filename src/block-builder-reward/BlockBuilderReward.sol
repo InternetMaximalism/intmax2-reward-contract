@@ -105,6 +105,15 @@ contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UU
     }
 
     /**
+     * @notice Retrieves the current period number from the Contribution contract
+     * @dev This is a pass-through function to the Contribution contract's getCurrentPeriod function
+     * @return The current period number
+     */
+    function getCurrentPeriod() external view returns (uint256) {
+        return contribution.getCurrentPeriod();
+    }
+
+    /**
      * @notice Claims the caller's share of rewards for a specific period
      * @dev The reward amount is calculated based on the user's contribution relative to the total contributions
      * for the specified period and tag. The formula is: (totalReward * userContribution) / totalContributions

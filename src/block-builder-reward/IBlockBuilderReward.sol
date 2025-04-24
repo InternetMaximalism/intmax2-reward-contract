@@ -63,6 +63,13 @@ interface IBlockBuilderReward {
     function getReward(uint256 periodNumber) external view returns (bool, uint256);
 
     /**
+     * @notice Retrieves the current period number from the Contribution contract
+     * @dev This is a pass-through function to the Contribution contract's getCurrentPeriod function
+     * @return The current period number
+     */
+    function getCurrentPeriod() external view returns (uint256);
+
+    /**
      * @notice Claims the caller's share of rewards for a specific period
      * @dev The reward amount is calculated based on the user's contribution relative to the total contributions
      * @param periodNumber The period number for which the reward is being claimed
