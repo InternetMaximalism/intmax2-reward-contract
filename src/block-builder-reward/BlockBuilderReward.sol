@@ -138,7 +138,7 @@ contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UU
         }
         uint256 totalContributions = contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
         if (totalContributions == 0) {
-            return; // No contributions, no reward to claim
+            revert TriedToClaimZeroReward();
         }
         uint256 reward = (totalReward * contribution.userContributions(periodNumber, BLOCK_POST_TAG, _msgSender()))
             / totalContributions;

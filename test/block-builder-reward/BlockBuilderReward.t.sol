@@ -519,17 +519,10 @@ contract BlockBuilderRewardTest is Test {
         contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 0);
         contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 0);
 
-        uint256 initialBalance = token.balanceOf(user1);
-
-        // Claim reward should succeed but transfer 0 tokens
+        // Claim reward should revert with TriedToClaimZeroReward when total contributions is 0
         vm.prank(user1);
+        vm.expectRevert(IBlockBuilderReward.TriedToClaimZeroReward.selector);
         builder.claimReward(1);
-
-        // Balance should remain unchanged
-        assertEq(token.balanceOf(user1), initialBalance, "Balance should not change when total contributions is 0");
-
-        // Should be marked as claimed
-        assertTrue(builder.claimed(1, user1), "Should be marked as claimed even with 0 reward");
     }
 
     function test_getClaimableReward_zeroTotalContributions() public {
