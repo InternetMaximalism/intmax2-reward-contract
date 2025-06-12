@@ -136,8 +136,12 @@ contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UU
         } else {
             claimed[periodNumber][_msgSender()] = true;
         }
+        uint256 totalContributions = contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
+        if (totalContributions == 0) {
+            return; // No contributions, no reward to claim
+        }
         uint256 reward = (totalReward * contribution.userContributions(periodNumber, BLOCK_POST_TAG, _msgSender()))
-            / contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
+            / totalContributions;
         intmaxToken.transfer(_msgSender(), reward);
         emit Claimed(periodNumber, _msgSender(), reward);
     }
@@ -178,8 +182,12 @@ contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UU
         if (claimed[periodNumber][user]) {
             return 0;
         }
+        uint256 totalContributions = contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
+        if (totalContributions == 0) {
+            return 0;
+        }
         return (totalReward * contribution.userContributions(periodNumber, BLOCK_POST_TAG, user))
-            / contribution.totalContributions(periodNumber, BLOCK_POST_TAG);
+            / totalContributions;
     }
 
     /**
