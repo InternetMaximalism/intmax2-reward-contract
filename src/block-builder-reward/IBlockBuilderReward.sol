@@ -33,11 +33,7 @@ interface IBlockBuilderReward {
     event SetReward(uint256 indexed periodNumber, uint256 amount);
 
     /// @notice Emitted when a reward is claimed.
-    event Claimed(
-        uint256 indexed periodNumber,
-        address indexed user,
-        uint256 amount
-    );
+    event Claimed(uint256 indexed periodNumber, address indexed user, uint256 amount);
 
     /**
      * @notice Structure to store reward information for a specific period
@@ -67,9 +63,7 @@ interface IBlockBuilderReward {
      *         - A boolean indicating whether a reward has been set for the period
      *         - The total reward amount for the period (returns 0 if not set)
      */
-    function getReward(
-        uint256 periodNumber
-    ) external view returns (bool, uint256);
+    function getReward(uint256 periodNumber) external view returns (bool, uint256);
 
     /**
      * @notice Retrieves the current period number from the Contribution contract
@@ -107,8 +101,5 @@ interface IBlockBuilderReward {
      * @param user The address of the user for whom to calculate the claimable reward
      * @return The amount of tokens the user can claim as reward for the specified period
      */
-    function getClaimableReward(
-        uint256 periodNumber,
-        address user
-    ) external view returns (uint256);
+    function getClaimableReward(uint256 periodNumber, address user) external view returns (uint256);
 }
