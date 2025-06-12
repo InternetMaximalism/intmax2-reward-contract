@@ -186,8 +186,7 @@ contract BlockBuilderReward is IBlockBuilderReward, AccessControlUpgradeable, UU
         if (totalContributions == 0) {
             return 0;
         }
-        return (totalReward * contribution.userContributions(periodNumber, BLOCK_POST_TAG, user))
-            / totalContributions;
+        return (totalReward * contribution.userContributions(periodNumber, BLOCK_POST_TAG, user)) / totalContributions;
     }
 
     /**
