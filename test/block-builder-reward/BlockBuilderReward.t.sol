@@ -506,4 +506,215 @@ contract BlockBuilderRewardTest is Test {
             "getCurrentPeriod should return the current period from the contribution contract"
         );
     }
+
+    function test_claimReward_zeroTotalContributions() public {
+        // Set up reward for period 1
+        vm.prank(rewardManager);
+        builder.setReward(1, 1000);
+
+        // Set current period to 2 (period 1 has ended)
+        contribution.setCurrentPeriod(2);
+
+        // Set total contributions to 0 (no one contributed)
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 0);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 0);
+
+        // Claim reward should revert with TriedToClaimZeroReward when total contributions is 0
+        vm.prank(user1);
+        vm.expectRevert(IBlockBuilderReward.TriedToClaimZeroReward.selector);
+        builder.claimReward(1);
+    }
+
+    function test_getClaimableReward_zeroTotalContributions() public {
+        // Set up reward for period 1
+        vm.prank(rewardManager);
+        builder.setReward(1, 1000);
+
+        // Set current period to 2 (period 1 has ended)
+        contribution.setCurrentPeriod(2);
+
+        // Set total contributions to 0
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 0);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50);
+
+        // Should return 0 when total contributions is 0
+        uint256 claimableReward = builder.getClaimableReward(1, user1);
+        assertEq(claimableReward, 0, "Should return 0 when total contributions is 0");
+    }
+
+    function test_setReward_maxUint248() public {
+        // Test setting reward with maximum uint248 value
+        uint256 maxAmount = uint256(type(uint248).max);
+
+        vm.prank(rewardManager);
+        builder.setReward(1, maxAmount);
+
+        (bool isSet, uint256 amount) = builder.getReward(1);
+        assertEq(isSet, true, "Reward should be set");
+        assertEq(amount, maxAmount, "Amount should equal max uint248");
+    }
+
+    function test_claimReward_precisionLoss() public {
+        // Test reward calculation with potential precision loss
+        vm.prank(rewardManager);
+        builder.setReward(1, 1000);
+
+        contribution.setCurrentPeriod(2);
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 3);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 1);
+
+        vm.prank(user1);
+        builder.claimReward(1);
+
+        // Expected: 1000 * 1 / 3 = 333 (integer division)
+        assertEq(token.balanceOf(user1), 333, "Should handle integer division correctly");
+    }
+
+    function test_batchClaimReward_singlePeriod() public {
+        // Test batch claim with only one period
+        vm.prank(rewardManager);
+        builder.setReward(1, 1000);
+
+        contribution.setCurrentPeriod(2);
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50);
+
+        uint256[] memory periodNumbers = new uint256[](1);
+        periodNumbers[0] = 1;
+
+        vm.prank(user1);
+        builder.batchClaimReward(periodNumbers);
+
+        assertEq(token.balanceOf(user1), 500, "Should claim correct amount for single period");
+        assertTrue(builder.claimed(1, user1), "Should mark period as claimed");
+    }
+
+    function test_multipleUsers_claimReward() public {
+        address user2 = address(0x2);
+        address user3 = address(0x3);
+
+        // Set up reward
+        vm.prank(rewardManager);
+        builder.setReward(1, 1000);
+
+        contribution.setCurrentPeriod(2);
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
+
+        // Set different contributions for different users
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50); // 50%
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user2, 30); // 30%
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user3, 20); // 20%
+
+        // Each user claims their reward
+        vm.prank(user1);
+        builder.claimReward(1);
+
+        vm.prank(user2);
+        builder.claimReward(1);
+
+        vm.prank(user3);
+        builder.claimReward(1);
+
+        // Verify rewards
+        assertEq(token.balanceOf(user1), 500, "User1 should receive 50% of reward");
+        assertEq(token.balanceOf(user2), 300, "User2 should receive 30% of reward");
+        assertEq(token.balanceOf(user3), 200, "User3 should receive 20% of reward");
+
+        // Verify all are marked as claimed
+        assertTrue(builder.claimed(1, user1), "User1 should be marked as claimed");
+        assertTrue(builder.claimed(1, user2), "User2 should be marked as claimed");
+        assertTrue(builder.claimed(1, user3), "User3 should be marked as claimed");
+    }
+
+    function test_getClaimableReward_multipleScenarios() public {
+        address user2 = address(0x2);
+
+        // Set up rewards for multiple periods
+        vm.startPrank(rewardManager);
+        builder.setReward(1, 1000);
+        builder.setReward(2, 2000);
+        vm.stopPrank();
+
+        contribution.setCurrentPeriod(3);
+
+        // Period 1: user1 has 50% contribution
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user2, 0);
+
+        // Period 2: user2 has 75% contribution
+        contribution.setTotalContribution(2, keccak256("POST_BLOCK"), 200);
+        contribution.setUserContribution(2, keccak256("POST_BLOCK"), user1, 50);
+        contribution.setUserContribution(2, keccak256("POST_BLOCK"), user2, 150);
+
+        // Check claimable rewards before claiming
+        assertEq(builder.getClaimableReward(1, user1), 500, "User1 should be able to claim 500 from period 1");
+        assertEq(builder.getClaimableReward(1, user2), 0, "User2 should be able to claim 0 from period 1");
+        assertEq(builder.getClaimableReward(2, user1), 500, "User1 should be able to claim 500 from period 2");
+        assertEq(builder.getClaimableReward(2, user2), 1500, "User2 should be able to claim 1500 from period 2");
+
+        // User1 claims period 1
+        vm.prank(user1);
+        builder.claimReward(1);
+
+        // Check claimable rewards after user1 claims period 1
+        assertEq(builder.getClaimableReward(1, user1), 0, "User1 should not be able to claim from period 1 again");
+        assertEq(builder.getClaimableReward(2, user1), 500, "User1 should still be able to claim from period 2");
+        assertEq(builder.getClaimableReward(2, user2), 1500, "User2 should still be able to claim from period 2");
+    }
+
+    function test_batchClaimReward_partialSuccess() public {
+        // Set up rewards for periods 1 and 3, but not 2
+        vm.startPrank(rewardManager);
+        builder.setReward(1, 1000);
+        builder.setReward(3, 3000);
+        // Period 2 has no reward set
+        vm.stopPrank();
+
+        contribution.setCurrentPeriod(4);
+
+        // Set contributions for all periods
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50);
+
+        contribution.setTotalContribution(2, keccak256("POST_BLOCK"), 100);
+        contribution.setUserContribution(2, keccak256("POST_BLOCK"), user1, 50);
+
+        contribution.setTotalContribution(3, keccak256("POST_BLOCK"), 100);
+        contribution.setUserContribution(3, keccak256("POST_BLOCK"), user1, 50);
+
+        // Try to batch claim periods 1, 2, 3 (period 2 should fail)
+        uint256[] memory periodNumbers = new uint256[](3);
+        periodNumbers[0] = 1;
+        periodNumbers[1] = 2; // This will fail - no reward set
+        periodNumbers[2] = 3;
+
+        vm.prank(user1);
+        vm.expectRevert(IBlockBuilderReward.NotSetReward.selector);
+        builder.batchClaimReward(periodNumbers);
+
+        // Verify that period 1 was not claimed due to the failure
+        assertEq(token.balanceOf(user1), 0, "No rewards should be claimed due to batch failure");
+        assertFalse(builder.claimed(1, user1), "Period 1 should not be marked as claimed");
+    }
+
+    function test_edge_case_currentPeriodEqualsClaimPeriod() public {
+        // Test the edge case where current period equals the claim period
+        vm.prank(rewardManager);
+        builder.setReward(1, 1000);
+
+        // Set current period to 1 (same as claim period)
+        contribution.setCurrentPeriod(1);
+        contribution.setTotalContribution(1, keccak256("POST_BLOCK"), 100);
+        contribution.setUserContribution(1, keccak256("POST_BLOCK"), user1, 50);
+
+        // Should revert because period has not ended
+        vm.prank(user1);
+        vm.expectRevert(IBlockBuilderReward.PeriodNotEnded.selector);
+        builder.claimReward(1);
+
+        // getClaimableReward should also return 0
+        uint256 claimable = builder.getClaimableReward(1, user1);
+        assertEq(claimable, 0, "Should return 0 when period has not ended");
+    }
 }

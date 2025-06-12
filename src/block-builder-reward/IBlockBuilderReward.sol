@@ -14,6 +14,9 @@ interface IBlockBuilderReward {
     /// @notice Error thrown when a user tries to claim a reward that has already been claimed
     error AlreadyClaimed();
 
+    /// @notice Error thrown when a user tries to claim a reward with zero amount
+    error TriedToClaimZeroReward();
+
     /// @notice Error thrown when owner tries to set a reward that has already been set
     error AlreadySetReward();
 
