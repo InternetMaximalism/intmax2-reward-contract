@@ -13,6 +13,7 @@ interface IMinter {
 
     /**
      * @notice Emitted when INTMAX tokens are minted
+     * @param amount The amount of tokens minted
      */
     event Minted(uint256 amount);
 
@@ -31,14 +32,22 @@ interface IMinter {
 
     /**
      * @notice Mints new INTMAX tokens to this contract
-     * @dev Can only be called by the contract owner
+     * @dev Can only be called by addresses with TOKEN_MANAGER_ROLE
      */
     function mint() external;
 
     /**
      * @notice Transfers tokens from this contract to the liquidity address
-     * @dev Can only be called by the contract owner
+     * @dev Can only be called by addresses with TOKEN_MANAGER_ROLE
      * @param amount The amount of tokens to transfer
      */
     function transferToLiquidity(uint256 amount) external;
+
+    /**
+     * @notice Transfers tokens from this contract to the specified address
+     * @dev Can only be called by addresses with DEFAULT_ADMIN_ROLE
+     * @param to The address to transfer tokens to
+     * @param amount The amount of tokens to transfer
+     */
+    function transferTo(address to, uint256 amount) external;
 }
