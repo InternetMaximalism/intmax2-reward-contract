@@ -12,6 +12,36 @@ interface IMinter {
     error AddressZero();
 
     /**
+     * @dev Thrown when mint operation fails due to balance decrease
+     */
+    error MintFailed();
+
+    /**
+     * @dev Thrown when no tokens were minted
+     */
+    error NoTokensMinted();
+
+    /**
+     * @dev Thrown when transfer amount is zero
+     */
+    error ZeroAmount();
+
+    /**
+     * @dev Thrown when transfer recipient is zero address
+     */
+    error ZeroRecipient();
+
+    /**
+     * @dev Thrown when transfer fails
+     */
+    error TransferFailed();
+
+    /**
+     * @dev Thrown when insufficient balance for transfer
+     */
+    error InsufficientBalance();
+
+    /**
      * @notice Emitted when INTMAX tokens are minted
      * @param amount The amount of tokens minted
      */

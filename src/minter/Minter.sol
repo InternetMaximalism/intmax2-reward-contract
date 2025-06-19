@@ -57,9 +57,24 @@ contract Minter is IMinter, AccessControlUpgradeable, UUPSUpgradeable {
      */
     function mint() external onlyRole(TOKEN_MANAGER_ROLE) {
         uint256 balanceBefore = intmaxToken.balanceOf(address(this));
+
+        // Perform external call
         intmaxToken.mint(address(this));
+
         uint256 balanceAfter = intmaxToken.balanceOf(address(this));
+
+        // Check for potential overflow/underflow and ensure balance increased
+        if (balanceAfter < balanceBefore) {
+            revert MintFailed();
+        }
+
         uint256 mintedAmount = balanceAfter - balanceBefore;
+
+        // Ensure tokens were actually minted
+        if (mintedAmount == 0) {
+            revert NoTokensMinted();
+        }
+
         emit Minted(mintedAmount);
     }
 
@@ -69,7 +84,20 @@ contract Minter is IMinter, AccessControlUpgradeable, UUPSUpgradeable {
      * @param amount The amount of tokens to transfer
      */
     function transferToLiquidity(uint256 amount) external onlyRole(TOKEN_MANAGER_ROLE) {
-        intmaxToken.transfer(liquidity, amount);
+        if (amount == 0) {
+            revert ZeroAmount();
+        }
+
+        uint256 contractBalance = intmaxToken.balanceOf(address(this));
+        if (contractBalance < amount) {
+            revert InsufficientBalance();
+        }
+
+        bool success = intmaxToken.transfer(liquidity, amount);
+        if (!success) {
+            revert TransferFailed();
+        }
+
         emit TransferredToLiquidity(amount);
     }
 
@@ -80,7 +108,24 @@ contract Minter is IMinter, AccessControlUpgradeable, UUPSUpgradeable {
      * @param amount The amount of tokens to transfer
      */
     function transferTo(address to, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        intmaxToken.transfer(to, amount);
+        if (to == address(0)) {
+            revert ZeroRecipient();
+        }
+
+        if (amount == 0) {
+            revert ZeroAmount();
+        }
+
+        uint256 contractBalance = intmaxToken.balanceOf(address(this));
+        if (contractBalance < amount) {
+            revert InsufficientBalance();
+        }
+
+        bool success = intmaxToken.transfer(to, amount);
+        if (!success) {
+            revert TransferFailed();
+        }
+
         emit TransferredTo(to, amount);
     }
 

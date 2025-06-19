@@ -11,15 +11,45 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract testIntMaxToken is ERC20 {
+    bool public shouldFailMint;
+    bool public shouldMintZero;
+    bool public shouldFailTransfer;
+
     constructor() ERC20("TestIntMaxToken", "TIMT") {}
 
     function mint(address to) external {
+        if (shouldFailMint) {
+            // Burn tokens to simulate balance decrease
+            if (balanceOf(to) > 0) {
+                _burn(to, balanceOf(to));
+            }
+            return;
+        }
+        if (shouldMintZero) {
+            // Don't mint anything
+            return;
+        }
         _mint(to, 1000);
     }
 
     function transfer(address recipient, uint256 amount) public override returns (bool) {
+        if (shouldFailTransfer) {
+            return false;
+        }
         _transfer(_msgSender(), recipient, amount);
         return true;
+    }
+
+    function setShouldFailMint(bool _shouldFail) external {
+        shouldFailMint = _shouldFail;
+    }
+
+    function setShouldMintZero(bool _shouldMintZero) external {
+        shouldMintZero = _shouldMintZero;
+    }
+
+    function setShouldFailTransfer(bool _shouldFail) external {
+        shouldFailTransfer = _shouldFail;
     }
 }
 
@@ -199,5 +229,83 @@ contract MinterTest is Test {
         );
         vm.prank(nonAuthorized);
         minter.transferTo(recipient, amount);
+    }
+
+    function test_mintFailedError() public {
+        // First mint some tokens to the minter contract
+        vm.prank(TOKEN_MANAGER);
+        minter.mint();
+
+        // Set the token to fail mint (simulate balance decrease)
+        token.setShouldFailMint(true);
+
+        vm.expectRevert(IMinter.MintFailed.selector);
+        vm.prank(TOKEN_MANAGER);
+        minter.mint();
+    }
+
+    function test_noTokensMintedError() public {
+        // Set the token to mint zero tokens
+        token.setShouldMintZero(true);
+
+        vm.expectRevert(IMinter.NoTokensMinted.selector);
+        vm.prank(TOKEN_MANAGER);
+        minter.mint();
+    }
+
+    function test_transferToLiquidityZeroAmount() public {
+        vm.expectRevert(IMinter.ZeroAmount.selector);
+        vm.prank(TOKEN_MANAGER);
+        minter.transferToLiquidity(0);
+    }
+
+    function test_transferToLiquidityInsufficientBalance() public {
+        vm.expectRevert(IMinter.InsufficientBalance.selector);
+        vm.prank(TOKEN_MANAGER);
+        minter.transferToLiquidity(1000);
+    }
+
+    function test_transferToLiquidityTransferFailed() public {
+        // First mint tokens
+        vm.prank(TOKEN_MANAGER);
+        minter.mint();
+
+        // Set transfer to fail
+        token.setShouldFailTransfer(true);
+
+        vm.expectRevert(IMinter.TransferFailed.selector);
+        vm.prank(TOKEN_MANAGER);
+        minter.transferToLiquidity(500);
+    }
+
+    function test_transferToZeroRecipient() public {
+        vm.expectRevert(IMinter.ZeroRecipient.selector);
+        vm.prank(ADMIN);
+        minter.transferTo(address(0), 100);
+    }
+
+    function test_transferToZeroAmount() public {
+        vm.expectRevert(IMinter.ZeroAmount.selector);
+        vm.prank(ADMIN);
+        minter.transferTo(address(0x7), 0);
+    }
+
+    function test_transferToInsufficientBalance() public {
+        vm.expectRevert(IMinter.InsufficientBalance.selector);
+        vm.prank(ADMIN);
+        minter.transferTo(address(0x7), 1000);
+    }
+
+    function test_transferToTransferFailed() public {
+        // First mint tokens
+        vm.prank(TOKEN_MANAGER);
+        minter.mint();
+
+        // Set transfer to fail
+        token.setShouldFailTransfer(true);
+
+        vm.expectRevert(IMinter.TransferFailed.selector);
+        vm.prank(ADMIN);
+        minter.transferTo(address(0x7), 500);
     }
 }
