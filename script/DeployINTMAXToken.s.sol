@@ -13,7 +13,7 @@ contract DeployINTMAXToken is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         address admin = vm.envAddress("ADMIN_ADDRESS");
-        address minter = vm.envAddress("MINTER_ADDRESS");
+        address minter = 0x00000000000000000000000000000000000000;
 
         INTMAXToken intmaxToken = deploy(deployerPrivateKey, admin, minter);
 
@@ -22,10 +22,7 @@ contract DeployINTMAXToken is Script {
         console.log("Minter address:", minter);
     }
 
-    function deploy(uint256 deployerPrivateKey, address admin, address minter)
-        public
-        returns (INTMAXToken)
-    {
+    function deploy(uint256 deployerPrivateKey, address admin, address minter) public returns (INTMAXToken) {
         vm.startBroadcast(deployerPrivateKey);
 
         INTMAXToken intmaxToken = new INTMAXToken(admin, minter);
