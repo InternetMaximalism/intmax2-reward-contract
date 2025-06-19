@@ -32,31 +32,15 @@ contract SetupMinterTest is Script {
         }
 
         // grant minter role to the liquidity address
-        if (
-            !intmaxToken.hasRole(intmaxToken.MINTER_ROLE(), liquidity_address)
-        ) {
+        if (!intmaxToken.hasRole(intmaxToken.MINTER_ROLE(), liquidity_address)) {
             intmaxToken.grantRole(intmaxToken.MINTER_ROLE(), liquidity_address);
-            console.log(
-                "Granted MINTER_ROLE to liquidity address:",
-                liquidity_address
-            );
+            console.log("Granted MINTER_ROLE to liquidity address:", liquidity_address);
         }
 
         // set token manager role
-        if (
-            !intmaxToken.hasRole(
-                minter.TOKEN_MANAGER_ROLE(),
-                token_manager_address
-            )
-        ) {
-            intmaxToken.grantRole(
-                minter.TOKEN_MANAGER_ROLE(),
-                token_manager_address
-            );
-            console.log(
-                "Granted TOKEN_MANAGER_ROLE to:",
-                token_manager_address
-            );
+        if (!intmaxToken.hasRole(minter.TOKEN_MANAGER_ROLE(), token_manager_address)) {
+            intmaxToken.grantRole(minter.TOKEN_MANAGER_ROLE(), token_manager_address);
+            console.log("Granted TOKEN_MANAGER_ROLE to:", token_manager_address);
         }
 
         vm.stopBroadcast();

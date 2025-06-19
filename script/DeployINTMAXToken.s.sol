@@ -22,11 +22,7 @@ contract DeployINTMAXToken is Script {
         console.log("Minter address:", minter);
     }
 
-    function deploy(
-        uint256 deployerPrivateKey,
-        address admin,
-        address minter
-    ) public returns (INTMAXToken) {
+    function deploy(uint256 deployerPrivateKey, address admin, address minter) public returns (INTMAXToken) {
         vm.startBroadcast(deployerPrivateKey);
 
         INTMAXToken intmaxToken = new INTMAXToken(admin, minter);
