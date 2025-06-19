@@ -38,8 +38,8 @@ contract SetupMinterTest is Script {
         }
 
         // set token manager role
-        if (!intmaxToken.hasRole(minter.TOKEN_MANAGER_ROLE(), token_manager_address)) {
-            intmaxToken.grantRole(minter.TOKEN_MANAGER_ROLE(), token_manager_address);
+        if (!minter.hasRole(minter.TOKEN_MANAGER_ROLE(), token_manager_address)) {
+            minter.grantRole(minter.TOKEN_MANAGER_ROLE(), token_manager_address);
             console.log("Granted TOKEN_MANAGER_ROLE to:", token_manager_address);
         }
 
