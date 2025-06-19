@@ -66,6 +66,10 @@ contract MinterTest is Test {
 
     function test_mintByOwner() public {
         uint256 initialBalance = token.balanceOf(address(minter));
+
+        vm.expectEmit(true, false, false, true);
+        emit IMinter.Minted(1000);
+
         minter.mint();
         uint256 finalBalance = token.balanceOf(address(minter));
         assertEq(finalBalance, initialBalance + 1000);
@@ -84,6 +88,10 @@ contract MinterTest is Test {
         uint256 amount = 500;
 
         uint256 initialLiquidityBalance = token.balanceOf(LIQUIDITY);
+
+        vm.expectEmit(true, false, false, true);
+        emit IMinter.TransferredToLiquidity(amount);
+
         minter.transferToLiquidity(amount);
         uint256 finalLiquidityBalance = token.balanceOf(LIQUIDITY);
 
@@ -113,5 +121,20 @@ contract MinterTest is Test {
         Minter2 newImplementation = new Minter2();
         vm.prank(address(this));
         minter.upgradeToAndCall(address(newImplementation), "");
+    }
+
+    function test_mintEventEmission() public {
+        vm.expectEmit(true, false, false, true);
+        emit IMinter.Minted(1000);
+        minter.mint();
+    }
+
+    function test_transferToLiquidityEventEmission() public {
+        minter.mint();
+        uint256 amount = 250;
+
+        vm.expectEmit(true, false, false, true);
+        emit IMinter.TransferredToLiquidity(amount);
+        minter.transferToLiquidity(amount);
     }
 }

@@ -31,7 +31,10 @@ contract Minter is IMinter, OwnableUpgradeable, UUPSUpgradeable {
      * @param _liquidity Address for liquidity distribution
      * @custom:oz-upgrades-init-compat initializer
      */
-    function initialize(address _intmaxToken, address _liquidity) external initializer {
+    function initialize(
+        address _intmaxToken,
+        address _liquidity
+    ) external initializer {
         if (_intmaxToken == address(0) || _liquidity == address(0)) {
             revert AddressZero();
         }
@@ -48,7 +51,11 @@ contract Minter is IMinter, OwnableUpgradeable, UUPSUpgradeable {
      * @dev Only the contract owner can call this function
      */
     function mint() external onlyOwner {
+        uint256 balanceBefore = intmaxToken.balanceOf(address(this));
         intmaxToken.mint(address(this));
+        uint256 balanceAfter = intmaxToken.balanceOf(address(this));
+        uint256 mintedAmount = balanceAfter - balanceBefore;
+        emit Minted(mintedAmount);
     }
 
     /**
@@ -58,11 +65,24 @@ contract Minter is IMinter, OwnableUpgradeable, UUPSUpgradeable {
      */
     function transferToLiquidity(uint256 amount) external onlyOwner {
         intmaxToken.transfer(liquidity, amount);
+        emit TransferredToLiquidity(amount);
+    }
+
+    /**
+     * @notice Transfers tokens from this contract to the liquidity address
+     * @dev Only the contract owner can call this function
+     * @param amount The amount of tokens to transfer
+     */
+    function transferToken(address to, uint256 amount) external onlyOwner {
+        intmaxToken.transfer(to, amount);
+        emit TransferredTo(to, amount);
     }
 
     /**
      * @dev Function that authorizes an upgrade to a new implementation
      * @param newImplementation Address of the new implementation
      */
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 }

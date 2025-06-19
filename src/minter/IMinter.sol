@@ -12,6 +12,24 @@ interface IMinter {
     error AddressZero();
 
     /**
+     * @notice Emitted when INTMAX tokens are minted
+     */
+    event Minted(uint256 amount);
+
+    /**
+     * @notice Emitted when tokens are transferred to the liquidity address
+     * @param amount The amount of tokens transferred
+     */
+    event TransferredToLiquidity(uint256 amount);
+
+    /**
+     * @notice Emitted when tokens are transferred to a specific address
+     * @param to The address receiving the tokens
+     * @param amount The amount of tokens transferred
+     */
+    event TransferredTo(address to, uint256 amount);
+
+    /**
      * @notice Mints new INTMAX tokens to this contract
      * @dev Can only be called by the contract owner
      */
