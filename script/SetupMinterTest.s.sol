@@ -36,23 +36,15 @@ contract SetupMinterTest is Script {
 
         // start setup with admin private key
         vm.startBroadcast(adminPrivateKey);
+
         // grant minter role to the minter contract
-        if (!intmaxToken.hasRole(intmaxToken.MINTER_ROLE(), address(minter))) {
-            intmaxToken.grantRole(intmaxToken.MINTER_ROLE(), address(minter));
-            console.log("Granted MINTER_ROLE to:", address(minter));
-        }
+        intmaxToken.grantRole(intmaxToken.MINTER_ROLE(), address(minter));
 
         // grant minter role to the liquidity address
-        if (!intmaxToken.hasRole(intmaxToken.MINTER_ROLE(), liquidity_address)) {
-            intmaxToken.grantRole(intmaxToken.MINTER_ROLE(), liquidity_address);
-            console.log("Granted MINTER_ROLE to liquidity address:", liquidity_address);
-        }
+        intmaxToken.grantRole(intmaxToken.MINTER_ROLE(), liquidity_address);
 
         // set token manager role
-        if (!minter.hasRole(minter.TOKEN_MANAGER_ROLE(), token_manager_address)) {
-            minter.grantRole(minter.TOKEN_MANAGER_ROLE(), token_manager_address);
-            console.log("Granted TOKEN_MANAGER_ROLE to:", token_manager_address);
-        }
+        minter.grantRole(minter.TOKEN_MANAGER_ROLE(), token_manager_address);
 
         vm.stopBroadcast();
     }
