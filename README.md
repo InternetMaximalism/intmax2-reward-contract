@@ -36,6 +36,7 @@ graph TD
 ### System Flow Overview
 
 **Scroll Network (Block Builder Rewards):**
+
 1. Block builders contribute to the L2 network by posting blocks to the Rollup Contract
 2. The Rollup Contract records these contributions in the Contribution Contract with `BLOCK_POST_TAG`
 3. Reward managers set total reward amounts for each period in the BlockBuilderReward Contract
@@ -43,6 +44,7 @@ graph TD
 5. Block builders can claim their proportional share of sITX tokens based on their contributions
 
 **Ethereum Mainnet (Privacy Mining):**
+
 1. The Minter Contract mints ITX tokens from the mainnet ITX Token Contract
 2. Minted ITX tokens are transferred to the Liquidity Contract
 3. The Liquidity Contract distributes ITX tokens as privacy mining rewards to users
@@ -225,75 +227,6 @@ Deploy Minter (Ethereum Mainnet):
 
 ```bash
 forge script script/DeployMinter.s.sol --rpc-url ethereum-mainnet --broadcast --verify
-```
-
-## Usage Examples
-
-### Setting Up Rewards
-
-1. **Set reward for a period** (Reward Manager):
-
-```solidity
-// Set 1000 sITX tokens as reward for period 1
-blockBuilderReward.setReward(1, 1000 * 10**18);
-```
-
-2. **Check reward information**:
-
-```solidity
-(bool isSet, uint256 amount) = blockBuilderReward.getReward(1);
-```
-
-### Claiming Rewards
-
-1. **Check claimable amount**:
-
-```solidity
-uint256 claimable = blockBuilderReward.getClaimableReward(1, userAddress);
-```
-
-2. **Claim single period**:
-
-```solidity
-blockBuilderReward.claimReward(1);
-```
-
-3. **Batch claim multiple periods**:
-
-```solidity
-uint256[] memory periods = new uint256[](3);
-periods[0] = 1;
-periods[1] = 2;
-periods[2] = 3;
-blockBuilderReward.batchClaimReward(periods);
-```
-
-### Token Management
-
-1. **Enable transfers** (Admin):
-
-```solidity
-scrollINTMAXToken.allowTransfers();
-```
-
-2. **Burn tokens**:
-
-```solidity
-scrollINTMAXToken.burn(amount);
-```
-
-### Minter Operations
-
-1. **Mint tokens** (Token Manager):
-
-```solidity
-minter.mint();
-```
-
-2. **Transfer to liquidity** (Token Manager):
-
-```solidity
-minter.transferToLiquidity(amount);
 ```
 
 ## Testing
