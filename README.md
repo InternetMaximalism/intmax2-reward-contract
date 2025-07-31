@@ -12,13 +12,40 @@ The INTMAX2 reward system consists of three main components:
 
 ## Architecture
 
-### Block Builder Reward Flow
+### Scroll Network - Block Builder Reward System
 
-1. Block builders contribute to the L2 network by posting blocks
-2. Their contributions are tracked in the Contribution contract with the `BLOCK_POST_TAG`
-3. Reward managers set total reward amounts for each period
-4. Users can claim their proportional share of rewards based on their contributions
-5. Rewards are distributed in sITX tokens
+```mermaid
+graph TD
+    A[Block Builder] -->|Post Blocks| B[Rollup Contract]
+    B -->|Record Contributions| C[Contribution Contract]
+    D[Reward Manager] -->|Set Reward Amount| E[BlockBuilderReward Contract]
+    E -->|Read Contributions<br/>BLOCK_POST_TAG| C
+    E -->|Distribute sITX Tokens| A
+    F[ScrollINTMAXToken<br/>sITX] -->|Transfer Tokens| E
+```
+
+### Ethereum Mainnet - Privacy Mining Rewards
+
+```mermaid
+graph TD
+    A[Minter Contract] -->|Mint ITX| B[ITX Token Contract]
+    A -->|Transfer ITX| C[Liquidity Contract]
+    C -->|Privacy Mining<br/>Rewards| D[Users]
+```
+
+### System Flow Overview
+
+**Scroll Network (Block Builder Rewards):**
+1. Block builders contribute to the L2 network by posting blocks to the Rollup Contract
+2. The Rollup Contract records these contributions in the Contribution Contract with `BLOCK_POST_TAG`
+3. Reward managers set total reward amounts for each period in the BlockBuilderReward Contract
+4. The BlockBuilderReward Contract reads contribution data from the Contribution Contract
+5. Block builders can claim their proportional share of sITX tokens based on their contributions
+
+**Ethereum Mainnet (Privacy Mining):**
+1. The Minter Contract mints ITX tokens from the mainnet ITX Token Contract
+2. Minted ITX tokens are transferred to the Liquidity Contract
+3. The Liquidity Contract distributes ITX tokens as privacy mining rewards to users
 
 ### Token Ecosystem
 
