@@ -30,6 +30,10 @@ contract ScrollINTMAXToken is ERC20Upgradeable, AccessControlUpgradeable, UUPSUp
      */
     bool public transfersAllowed;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @notice Initializes the ScrollINTMAX token contract
      * @dev Sets up initial token supply, roles, and disables transfers by default
