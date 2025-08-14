@@ -10,7 +10,6 @@ import {ScrollINTMAXToken} from "../src/token/scroll/ScrollINTMAXToken.sol";
  * @dev This script updates the ScrollINTMAXToken contract
  */
 contract UpdateScrollINTMAXToken is Script {
-
     function run() public {
         uint256 adminPrivateKey = vm.envUint("ADMIN_PRIVATE_KEY");
         vm.startBroadcast(adminPrivateKey);
